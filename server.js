@@ -937,6 +937,16 @@ app.get('/api/students', async (req, res) => {
     }
 });
 
+// Demo account reset on logout - clears all demo students
+app.post('/api/demo/reset', async (req, res) => {
+    try {
+        await pool.query(`DELETE FROM students WHERE user_email = 'demo@school.com'`);
+        res.json({ message: 'Demo account reset successfully' });
+    } catch(err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.post('/api/students', async (req, res) => {
     const { user_email, students } = req.body;
     if(!user_email || !students) return res.status(400).json({ error: "Email and students data required" });
@@ -947,12 +957,17 @@ app.post('/api/students', async (req, res) => {
         const existing = await pool.query(`SELECT COUNT(*) FROM students WHERE user_email = $1`, [user_email]);
         const currentCount = parseInt(existing.rows[0].count);
         
-        // If already 10 students, block any changes (no add, no delete)
-        if (currentCount >= 10) {
-            return res.status(400).json({ error: "🚫 Demo account has reached the 10 student limit! You cannot add or delete students once the limit is reached. Please Sign Up for unlimited access." });
+        // Block delete: if incoming list is smaller than current count = someone is trying to delete
+        if (students.length < currentCount) {
+            return res.status(400).json({ error: "🚫 Deleting students is not allowed in the Demo account. Please Sign Up to create your own account with full control!" });
         }
         
-        // If trying to add more than 10
+        // Block add if already at 10
+        if (currentCount >= 10) {
+            return res.status(400).json({ error: "🚫 Demo account has reached the 10 student limit! Please Sign Up for unlimited students." });
+        }
+        
+        // Block adding more than 10
         if (students.length > 10) {
             return res.status(400).json({ error: "🚫 Demo account allows a maximum of 10 students only. Please Sign Up for unlimited students." });
         }
