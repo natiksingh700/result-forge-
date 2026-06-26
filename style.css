@@ -1,0 +1,409 @@
+:root {
+    --primary: #4F46E5;
+    --primary-hover: #4338CA;
+    --secondary: #E5E7EB;
+    --secondary-hover: #D1D5DB;
+    --success: #10B981;
+    --success-hover: #059669;
+    --danger: #EF4444;
+    --bg-color: #F3F4F6;
+    --card-bg: #FFFFFF;
+    --text-main: #111827;
+    --text-muted: #6B7280;
+    --border: #E5E7EB;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+    .app-container {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+}
+
+/* Form Section */
+.form-section {
+    flex: 1;
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.form-section h2 {
+    margin-bottom: 1.5rem;
+    color: var(--primary);
+}
+
+.form-section h3 {
+    margin: 1.5rem 0 1rem;
+    font-size: 1.1rem;
+    color: var(--text-main);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-group.half {
+    flex: 1;
+}
+
+label {
+    font-weight: 500;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+}
+
+input {
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Subjects Inputs */
+.subject-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    align-items: end;
+}
+
+.subject-row input {
+    width: 100%;
+}
+
+.btn-remove {
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    width: 40px;
+    height: 42px;
+    cursor: pointer;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+}
+.btn-remove:hover {
+    opacity: 0.9;
+}
+
+/* Buttons */
+button {
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+}
+.btn-primary:hover { background-color: var(--primary-hover); }
+
+.btn-secondary {
+    background-color: var(--secondary);
+    color: var(--text-main);
+}
+.btn-secondary:hover { background-color: var(--secondary-hover); }
+
+.btn-success {
+    background-color: var(--success);
+    color: white;
+}
+.btn-success:hover { background-color: var(--success-hover); }
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* Result Section */
+.result-section {
+    flex: 1;
+    min-width: 0;
+}
+
+.result-card {
+    background: white;
+    padding: 3rem;
+    border-radius: 0; /* Boxy like paper */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+}
+
+.result-card.hidden {
+    display: none;
+}
+
+/* Header */
+.card-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--primary);
+}
+
+.logo-box {
+    margin-bottom: 1rem;
+}
+
+.school-logo {
+    max-width: 120px;
+    height: auto;
+    object-fit: contain;
+}
+
+.card-header h1 {
+    font-size: 2rem;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+}
+
+.card-header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Student Info */
+.student-info-container {
+    display: flex;
+    justify-content: flex-end; /* Align right as requested */
+    margin-bottom: 2rem;
+}
+
+.student-info {
+    border: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    background: #f9fafb;
+    min-width: 250px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+.info-row:last-child {
+    margin-bottom: 0;
+}
+
+.info-row .label {
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-right: 1rem;
+}
+
+.info-row .value {
+    font-weight: 700;
+    color: var(--text-main);
+    text-align: right;
+}
+
+/* Table */
+.marks-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+}
+
+.marks-table th, .marks-table td {
+    border: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    text-align: center;
+}
+
+.marks-table th {
+    background-color: var(--primary);
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+}
+
+.marks-table td:first-child, .marks-table th:first-child {
+    text-align: left;
+}
+
+/* Summary */
+.result-summary {
+    display: flex;
+    justify-content: space-around;
+    background: #f9fafb;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.summary-box {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.summary-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.summary-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.status-pass {
+    color: var(--success) !important;
+}
+
+.status-fail {
+    color: var(--danger) !important;
+}
+
+/* Footer Signatures */
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4rem;
+    padding-top: 1rem;
+}
+
+.signature {
+    text-align: center;
+    width: 150px;
+}
+
+.signature .line {
+    border-top: 1px solid var(--text-main);
+    margin-bottom: 0.5rem;
+}
+
+.signature p {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background-color: white;
+        padding: 0;
+        margin: 0;
+    }
+    .no-print {
+        display: none !important;
+    }
+    .app-container {
+        display: block;
+        padding: 0;
+    }
+    .bulk-print-card {
+        page-break-after: always;
+        break-after: page;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body.printing-modal * {
+        visibility: hidden;
+    }
+    body.printing-modal #resultModal, body.printing-modal #resultModal * {
+        visibility: visible;
+    }
+    body.printing-modal #resultModal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+    .result-section {
+        display: block;
+    }
+    .result-card {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        width: 100%;
+    }
+    /* Enhance colors for print */
+    .marks-table th {
+        background-color: #e5e7eb !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .card-header h1 {
+        color: black;
+    }
+}

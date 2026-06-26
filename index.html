@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result Forge - Premium</title>
+    <link rel="stylesheet" href="jk.caa.css?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- iOS Wallpaper Background -->
+    <div id="waterBg">
+        <div class="orb3"></div>
+    </div>
+
+    <!-- Authentication Wrapper -->
+    <div id="authWrapper" class="app-container" style="justify-content: center; min-height: 100vh;">
+        <div class="form-section no-print" style="max-width: 500px; margin: auto;">
+            
+            <!-- Login View -->
+            <div id="loginView">
+                <div class="brand-title" style="position: relative; left: 0; text-align: center; margin-bottom: 2rem;">Result<span>Forge</span></div>
+                <h2>Welcome Back</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email address" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div style="position: relative; width: 100%;">
+                            <input type="password" id="loginPassword" placeholder="Enter your password" required style="padding-right: 2.8rem;">
+                            <button type="button" class="toggle-password-btn" style="position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none;" tabindex="-1">
+                                <i class="ph ph-eye" style="font-size: 20px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p style="text-align: right; margin-top: 0.5rem;"><a href="#" id="showForgotBtn" style="color: #38bdf8; text-decoration: none; font-size: 14px;">Forgot Password?</a></p>
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Login</button>
+                    <button type="button" id="demoLoginBtn" class="btn-secondary" style="width: 100%; margin-top: 0.5rem; background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;"><i class="ph ph-sparkle"></i> Try Demo Account</button>
+                    <p style="text-align: center; margin-top: 1.5rem; color: #cbd5e1; font-weight: 500;">Don't have an account? <a href="#" id="showSignUpBtn" style="color: #38bdf8; text-decoration: none;">Sign Up</a></p>
+                </form>
+            </div>
+
+            <!-- Sign Up View -->
+            <div id="signUpView" class="hidden">
+                <div class="brand-title" style="position: relative; left: 0; text-align: center; margin-bottom: 2rem;">Result<span>Forge</span></div>
+                <h2>Create Account</h2>
+                <form id="signUpForm">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="signupEmail" placeholder="Enter your email address" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div style="position: relative; width: 100%;">
+                            <input type="password" id="signupPassword" placeholder="Create a password" required style="padding-right: 2.8rem;">
+                            <button type="button" class="toggle-password-btn" style="position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none;" tabindex="-1">
+                                <i class="ph ph-eye" style="font-size: 20px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <div style="position: relative; width: 100%;">
+                            <input type="password" id="signupConfirmPassword" placeholder="Confirm your password" required style="padding-right: 2.8rem;">
+                            <button type="button" class="toggle-password-btn" style="position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none;" tabindex="-1">
+                                <i class="ph ph-eye" style="font-size: 20px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Invite / Access Code</label>
+                        <input type="text" id="signupInviteCode" placeholder="Enter Invite Code to register" required>
+                    </div>
+                    <button type="submit" class="btn-success" style="width: 100%; margin-top: 1rem;">Sign Up</button>
+                    <p style="text-align: center; margin-top: 1.5rem; color: #cbd5e1; font-weight: 500;">Already have an account? <a href="#" id="showLoginBtn" style="color: #38bdf8; text-decoration: none;">Login</a></p>
+                </form>
+            </div>
+
+            <!-- Forgot Password View -->
+            <div id="forgotPasswordView" class="hidden">
+                <div class="brand-title" style="position: relative; left: 0; text-align: center; margin-bottom: 2rem;">Result<span>Forge</span></div>
+                <h2>Reset Password</h2>
+                <form id="forgotPasswordForm">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="forgotEmail" placeholder="Enter your registered email" required>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Send Recovery Email</button>
+                    <p style="text-align: center; margin-top: 1.5rem; color: #cbd5e1; font-weight: 500;">Remember your password? <a href="#" id="backToLoginBtn" style="color: #38bdf8; text-decoration: none;">Back to Login</a></p>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Main App Wrapper (Hidden by default until logged in) -->
+    <div id="mainAppWrapper" class="hidden">
+        <!-- Main Navigation Bar -->
+        <div class="top-nav no-print">
+            <div class="brand-title">Result<span>Forge</span></div>
+            <button class="btn-primary tab-btn" id="tabManageBtn"><i class="ph ph-database" style="font-size: 20px;"></i> Student Database</button>
+            <button class="btn-secondary tab-btn" id="tabGenerateBtn"><i class="ph ph-file-text" style="font-size: 20px;"></i> Generate Results</button>
+            <button class="btn-secondary tab-btn" id="tabSavedBtn"><i class="ph ph-printer" style="font-size: 20px;"></i> Saved Results (Bulk Print)</button>
+            
+            <div style="margin-left: auto; display: flex; gap: 15px; align-items: center;">
+                <div id="userProfileWidget" class="user-profile hidden">
+                    <div class="avatar" id="userAvatar">U</div>
+                    <div class="user-info">
+                        <span class="user-email" id="userEmailText">admin@school.com</span>
+                        <span class="user-role">Administrator</span>
+                    </div>
+                </div>
+                <button class="btn-secondary" id="themeToggleBtn" style="padding: 0.5rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: none; cursor: pointer; transition: all 0.3s;" title="Toggle Dark Mode">
+                    <i class="ph ph-moon" id="themeIcon" style="font-size: 20px;"></i>
+                </button>
+                <button class="btn-secondary tab-btn" id="logoutBtn" style="background: #ef4444; color: white; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; min-width: auto; padding: 0.5rem 1rem;"><i class="ph ph-sign-out" style="font-size: 20px;"></i> Logout</button>
+            </div>
+        </div>
+    
+    <div class="app-container">
+
+        <!-- Input Section -->
+        <div class="form-section no-print">
+            <div id="generateView" class="hidden">
+                <h2>Result Details</h2>
+                <form id="resultForm">
+                    <h3>Institution Details</h3>
+                    <div class="form-row">
+                        <div class="form-group half"><label>School / University Name</label><input type="text" id="instName" placeholder="Enter School Name"></div>
+                        <div class="form-group half"><label>Location / Tagline</label><input type="text" id="instTagline" placeholder="Enter Tagline"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half"><label>Affiliation Number</label><input type="text" id="instAffiliation" placeholder="Enter Affiliation No. (Optional)"></div>
+                        <div class="form-group half">
+                            <label>Board</label>
+                            <select id="boardSelect">
+                                <option value="Affiliated to C.B.S.E. New Delhi">C.B.S.E. New Delhi</option>
+                                <option value="Affiliated to I.C.S.E. New Delhi">I.C.S.E. New Delhi</option>
+                                <option value="Affiliated to U.P. Board">U.P. Board</option>
+                                <option value="Affiliated to State Board">State Board</option>
+                                <option value="none">None (Hide)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>Result Theme</label>
+                            <select id="themeSelect">
+                                <option value="theme-pink">Default (Pink)</option>
+                                <option value="theme-blue">Professional (Blue)</option>
+                                <option value="theme-green">Forest (Green)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="option-card">
+                        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                <label>Upload Custom Logo</label>
+                                <input type="file" id="uploadLogo" accept="image/png, image/jpeg">
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 5px;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">Logo Options</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <button type="button" id="removeLogoBtn" class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"><i class="ph ph-trash"></i> Remove</button>
+                                    <label style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.85rem; cursor: pointer; text-transform: none; font-weight: 600; margin-bottom: 0;">
+                                        <input type="checkbox" id="removeLogoBgBtn" style="width: auto; margin-right: 5px;"> Mix Blend (Multiply)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <small style="color: var(--text-muted); margin-top: 0px;">You can also hover/scroll on the logo to resize, and drag it to move it around!</small>
+                    </div>
+
+                    <div class="option-card">
+                        <div class="form-group" style="width: 100%; margin-bottom: 0;">
+                            <label>UPLOAD CUSTOM WATERMARK</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="file" id="uploadWatermark" accept="image/*" style="flex: 1;">
+                                <button type="button" id="removeWatermarkBtn" class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"><i class="ph ph-trash"></i> Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                    <h3>Load Class List</h3>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>Select Class</label>
+                            <select id="selectClassToGenerate">
+                                <option value="">-- Choose Class --</option>
+                                <option value="LKG">LKG</option>
+                                <option value="UKG">UKG</option>
+                                <option value="1ST">1ST</option>
+                                <option value="2ND">2ND</option>
+                                <option value="3RD">3RD</option>
+                                <option value="4TH">4TH</option>
+                                <option value="5TH">5TH</option>
+                                <option value="6TH">6TH</option>
+                                <option value="7TH">7TH</option>
+                                <option value="8TH">8TH</option>
+                                <option value="9TH">9TH</option>
+                            </select>
+                        </div>
+                        <div class="form-group half">
+                            <label>Jump to Student</label>
+                            <input type="text" id="searchStudentInput" placeholder="Search by name..." style="display: none; margin-bottom: 0.3rem;">
+                            <select id="selectStudentToGenerate" disabled>
+                                <option value="">-- Choose Student --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="studentProgress" class="hidden" style="margin-bottom: 1.5rem; font-weight: bold; color: var(--accent); background: var(--bg-card); padding: 10px; border-radius: 8px; border: 1px solid var(--accent);">
+                        Currently editing: Student <span id="currentStudentNum">1</span> of <span id="totalStudentsNum">0</span>
+                    </div>
+
+                    <h3>Student Details</h3>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Student Name</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-user"></i>
+                            <input type="text" id="studentName" value="ANKIT" required>
+                        </div>
+                    </div>
+                    <div class="form-group half">
+                        <label>Father's Name</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-users"></i>
+                            <input type="text" id="fatherName" value="SHYANVEER" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Mother's Name</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-users-three"></i>
+                            <input type="text" id="motherName" value="MOTI DEVI" required>
+                        </div>
+                    </div>
+                    <div class="form-group half">
+                        <label>Class / Section</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-graduation-cap"></i>
+                            <input type="text" id="classSection" value="I / A" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Address</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-map-pin"></i>
+                            <input type="text" id="address" value="MAHUAN" required>
+                        </div>
+                    </div>
+                    <div class="form-group half">
+                        <label>DOB (DD-MM-YYYY)</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-calendar"></i>
+                            <input type="text" id="dob" value="">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group half"><label>Exam Name</label><input type="text" id="examName" value="FINAL EXAM Marks Statement" required></div>
+                    <div class="form-group half"><label>Session (e.g. 2023-2024)</label><input type="text" id="sessionYear" value="2023-2024" required></div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group half"><label>Term Name</label><input type="text" id="termName" value="TERM II" required></div>
+                    <div class="form-group half"><label>Minimum Marks (per subject)</label><input type="number" id="minMarks" value="33" required></div>
+                </div>
+
+                <div class="form-actions sticky-actions">
+                    <button type="button" class="btn-secondary" id="backwardBtn" disabled title="Previous Generated Result" style="padding: 0.85rem;"><i class="ph ph-caret-left" style="font-size: 20px;"></i></button>
+                    <button type="button" class="btn-secondary" id="forwardBtn" disabled title="Next Generated Result" style="padding: 0.85rem;"><i class="ph ph-caret-right" style="font-size: 20px;"></i></button>
+                    <button type="submit" class="btn-primary" id="generateResultBtn"><i class="ph ph-magic-wand" style="font-size: 20px;"></i> Generate Result</button>
+                    <button type="button" id="editResultBtn" class="btn-secondary hidden"><i class="ph ph-pencil" style="font-size: 20px;"></i> Edit Details</button>
+                    <button type="button" id="printBtn" class="btn-success" disabled><i class="ph ph-printer" style="font-size: 20px;"></i> Print Result</button>
+                </div>
+
+                <h3>Marks Entry</h3>
+                <div id="subjectsContainer"></div>
+                <button type="button" id="addSubBtn" class="btn-secondary"><i class="ph ph-plus" style="font-size: 20px;"></i> Add Subject</button>
+                
+                <h3>Co-Scholastic Areas</h3>
+                <div class="option-card">
+                    <div class="form-row">
+                        <div class="form-group half"><label>Discipline & Conduct</label>
+                            <select id="gradeDiscipline">
+                                <option value="">-- Select Grade --</option>
+                                <option value="A+">A+</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                            </select>
+                        </div>
+                        <div class="form-group half"><label>Art & Craft</label>
+                            <select id="gradeArt">
+                                <option value="">-- Select Grade --</option>
+                                <option value="A+">A+</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half"><label>Physical Education / Sports</label>
+                            <select id="gradeSports">
+                                <option value="">-- Select Grade --</option>
+                                <option value="A+">A+</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                            </select>
+                        </div>
+                        <div class="form-group half"><label>Work Education / Computer</label>
+                            <select id="gradeComputer">
+                                <option value="">-- Select Grade --</option>
+                                <option value="A+">A+</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Remarks & Extras</h3>
+                <div class="form-row">
+                    <div class="form-group half"><label>Remarks</label><input type="text" id="teacherRemarks" value="Excellent, Keep it up"></div>
+                    <div class="form-group half"><label>School Reopens On</label><input type="text" id="reopenDate" value="18th MARCH, 2024"></div>
+                </div>
+            </form>
+            </div>
+
+            <!-- Manage Database View -->
+            <div id="manageView">
+                <h2>Manage Students Database</h2>
+                
+                <!-- Dashboard Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="ph ph-users" style="font-size:28px;"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-label">Total Students</span>
+                            <span class="stat-value" id="statTotalStudents">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="ph ph-graduation-cap" style="font-size:28px;"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-label">Active Classes</span>
+                            <span class="stat-value" id="statTotalClasses">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="ph ph-trophy" style="font-size:28px;"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-label">Results Generated</span>
+                            <span class="stat-value" id="statTotalResults">0</span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <form id="addStudentForm" class="option-card" style="margin-top: 0; margin-bottom: 30px;">
+                    <h3>Add New Student</h3>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>Class</label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-graduation-cap"></i>
+                                <select id="dbClass" required>
+                                    <option value="">-- Select --</option>
+                                    <option value="LKG">LKG</option>
+                                    <option value="UKG">UKG</option>
+                                    <option value="1ST">1ST</option>
+                                    <option value="2ND">2ND</option>
+                                    <option value="3RD">3RD</option>
+                                    <option value="4TH">4TH</option>
+                                    <option value="5TH">5TH</option>
+                                    <option value="6TH">6TH</option>
+                                    <option value="7TH">7TH</option>
+                                    <option value="8TH">8TH</option>
+                                    <option value="9TH">9TH</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group half">
+                            <label>Student Name</label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-user"></i>
+                                <input type="text" id="dbStudentName" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>Father's Name</label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-users"></i>
+                                <input type="text" id="dbFatherName" required>
+                            </div>
+                        </div>
+                        <div class="form-group half">
+                            <label>Mother's Name</label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-users-three"></i>
+                                <input type="text" id="dbMotherName" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>Address</label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-map-pin"></i>
+                                <input type="text" id="dbAddress" required>
+                            </div>
+                        </div>
+                        <div class="form-group half">
+                            <label>DOB (DD-MM-YYYY)</label>
+                            <div class="input-wrapper">
+                                <i class="ph ph-calendar"></i>
+                                <input type="text" id="dbDob" required>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary"><i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Save Student</button>
+                </form>
+
+                <h3>Database Records</h3>
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Filter by Class</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-funnel"></i>
+                            <select id="filterClassDb" style="width: 200px;">
+                                <option value="ALL">All Classes</option>
+                                <option value="LKG">LKG</option>
+                                <option value="UKG">UKG</option>
+                                <option value="1ST">1ST</option>
+                                <option value="2ND">2ND</option>
+                                <option value="3RD">3RD</option>
+                                <option value="4TH">4TH</option>
+                                <option value="5TH">5TH</option>
+                                <option value="6TH">6TH</option>
+                                <option value="7TH">7TH</option>
+                                <option value="8TH">8TH</option>
+                                <option value="9TH">9TH</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" id="exportDbBtn" class="btn-success"><i class="ph ph-export" style="font-size: 20px;"></i> Export Data (Backup)</button>
+                        <button type="button" id="importDbClicker" class="btn-secondary"><i class="ph ph-import" style="font-size: 20px;"></i> Import Data</button>
+                        <input type="file" id="importDbFile" accept=".csv" class="hidden">
+                        <button type="button" id="fixColumnsBtn" style="background:#8b5cf6; color:white; border:none; padding:0.5rem 1rem; border-radius:10px; font-family:'Space Grotesk',sans-serif; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; font-size:0.85rem;">
+                            <i class="ph ph-wrench" style="font-size:18px;"></i> Fix Shifted Columns
+                        </button>
+                        <button type="button" id="deleteAllStudentsBtn" style="background:#ef4444; color:white; border:none; padding:0.5rem 1rem; border-radius:10px; font-family:'Space Grotesk',sans-serif; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; font-size:0.85rem;">
+                            <i class="ph ph-trash" style="font-size:18px;"></i> Delete All Students
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto; width: 100%;">
+                    <table class="db-table">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Class</th>
+                                <th>Father Name</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dbTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <!-- Saved Results / Bulk Print View -->
+        <div id="savedView" class="hidden">
+            <div class="option-card no-print" style="margin-top: 0; margin-bottom: 0;">
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; border-bottom: 2px solid var(--border-light); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+                    <h3 style="margin:0;">Bulk Print Results</h3>
+                    <button type="button" id="deleteAllResultsBtn" style="background:#ef4444; color:white; border:none; padding:0.45rem 1rem; border-radius:10px; font-family:'Space Grotesk',sans-serif; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; font-size:0.82rem;">
+                        <i class="ph ph-trash" style="font-size:16px;"></i> Delete All Results
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label>Student Name</label>
+                    <div class="input-wrapper">
+                        <i class="ph ph-user"></i>
+                        <input type="text" id="searchNameBulk" placeholder="Search Student Name...">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Parent Name</label>
+                    <div class="input-wrapper">
+                        <i class="ph ph-users"></i>
+                        <input type="text" id="searchParentBulk" placeholder="Search Parent Name...">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Class</label>
+                    <div class="input-wrapper">
+                        <i class="ph ph-graduation-cap"></i>
+                        <select id="selectClassBulk">
+                            <option value="">-- Choose Class --</option>
+                            <option value="LKG">LKG</option>
+                            <option value="UKG">UKG</option>
+                            <option value="1ST">1ST</option>
+                            <option value="2ND">2ND</option>
+                            <option value="3RD">3RD</option>
+                            <option value="4TH">4TH</option>
+                            <option value="5TH">5TH</option>
+                            <option value="6TH">6TH</option>
+                            <option value="7TH">7TH</option>
+                            <option value="8TH">8TH</option>
+                            <option value="9TH">9TH</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" class="btn-primary hidden" id="bulkPrintBtn" style="width: 100%; margin-top: 0.5rem;"><i class="ph ph-printer"></i> Print All</button>
+            </div>
+        </div>
+    </div>
+
+        <!-- Result Card Section -->
+        <div class="result-section" id="printableArea">
+            <div id="bulkPrintContainer" style="display: flex; flex-direction: column; gap: 2rem; align-items: center; cursor: pointer;">
+                <!-- Generated cards will be cloned here -->
+            </div>
+            <div class="result-card hidden" id="resultCard">
+                <div class="affiliation-no" id="dispAffiliation" style="display:none;"></div>
+                
+                <div class="card-header">
+                    <div class="logo-box">
+                        <img src="" alt="School Logo" class="school-logo" style="display: none;">
+                    </div>
+                    <div class="header-text">
+                        <div class="school-name-curve-container">
+                            <svg viewBox="0 0 1000 140" class="school-name-svg">
+                                <path id="curve-path" d="M 50 110 Q 500 0 950 110" fill="transparent" />
+                                <text class="school-name-curved-text">
+                                    <textPath id="dispInstName" href="#curve-path" startOffset="50%" text-anchor="middle">
+                                        S. TAGORE ACADEMY PUBLIC SCHOOL
+                                    </textPath>
+                                </text>
+                            </svg>
+                        </div>
+                        <h2 class="school-sub" id="dispInstTagline">A SCHOOL OF EXCELLENCE</h2>
+                        <h3 class="school-affil" id="dispBoard">Affiliated to C.B.S.E. New Delhi</h3>
+                        <h4 class="school-title"><span id="dispExamName">FINAL EXAM Marks Statement</span> &nbsp; <span id="dispSessionYear">2023-2024</span></h4>
+                    </div>
+                </div>
+
+                <table class="student-details-table">
+                    <tr>
+                        <td class="label-green">STUDENT'S NAME:</td>
+                        <td class="value-green" id="dispStudentName"></td>
+                        <td class="label-green">FATHER'S NAME:</td>
+                        <td class="value-green" id="dispFatherName"></td>
+                    </tr>
+                    <tr>
+                        <td class="label-green">MOTHER'S NAME:</td>
+                        <td class="value-green" id="dispMotherName"></td>
+                        <td class="label-green">CLASS/SECTION:</td>
+                        <td class="value-green" id="dispClassSection"></td>
+                    </tr>
+                    <tr>
+                        <td class="label-green">ADDRESS:</td>
+                        <td class="value-green" id="dispAddress"></td>
+                        <td class="label-green">DOB:</td>
+                        <td class="value-green" id="dispDob"></td>
+                    </tr>
+                </table>
+
+                <table class="marks-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">SUBJECT</th>
+                            <th colspan="4" id="dispTermName">TERM II</th>
+                        </tr>
+                        <tr>
+                            <th>MAXIMUM MARKS</th>
+                            <th>MINIMUM MARKS</th>
+                            <th>OBTAINED MARKS</th>
+                            <th>GRADE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marksTableBody">
+                    </tbody>
+                </table>
+
+                <table class="final-result-table">
+                    <thead>
+                        <tr><th colspan="4" class="pink-bg">FINAL EXAM RESULT</th></tr>
+                        <tr class="pink-bg">
+                            <th>TOTAL MARKS OBTAINED</th>
+                            <th>PERCENTAGE</th>
+                            <th>FINAL EXAM GRADE</th>
+                            <th>FINAL EXAM CGPA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="pink-italic">
+                            <td id="dispTotalMarks"></td>
+                            <td id="dispPercentage"></td>
+                            <td id="dispOverallGrade"></td>
+                            <td id="dispCGPA"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table class="co-scholastic-table">
+                    <thead>
+                        <tr><th colspan="2" class="pink-bg">CO-SCHOLASTIC AREAS (ON 3 POINT GRADING SCALE)</th></tr>
+                    </thead>
+                    <tbody class="pink-text">
+                        <tr><td>Work Education</td><td id="dispGradeComputer">A</td></tr>
+                        <tr><td>Art Education</td><td id="dispGradeArt">A</td></tr>
+                        <tr><td>Health & Physical Education</td><td id="dispGradeSports">A</td></tr>
+                        <tr><td>Discipline</td><td id="dispGradeDiscipline">A</td></tr>
+                    </tbody>
+                </table>
+
+                <table class="remarks-table">
+                    <tr><td class="orange-text">Result</td><td class="italic-black" id="dispResult"></td></tr>
+                    <tr><td class="orange-text">Class Teacher Remarks</td><td class="orange-italic" id="dispRemarks"></td></tr>
+                    <tr><td class="orange-text">School Reopens on</td><td class="orange-italic" id="dispReopen"></td></tr>
+                </table>
+
+
+
+                <!-- Removed Grading Scale Note to save space -->
+                <div class="signatures">
+                    <div class="sig-box">
+                        <p>Class Teacher Signature</p>
+                    </div>
+                    <div class="sig-box">
+                        <p>Principal Signature</p>
+                    </div>
+                </div>
+                
+                <div class="watermark"></div>
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+    
+    <!-- EmailJS SDK (Required for sending emails from frontend) -->
+        <!-- Result Popup Modal -->
+        <div id="resultModal" class="hidden no-print" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; padding: 2rem;">
+            <div style="width: 100%; max-width: 1000px; display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 1rem; position: sticky; top: 0; z-index: 10000;">
+                <button id="modalPrintBtn" class="btn-primary"><i class="ph ph-printer"></i> Print Result</button>
+                <button id="closeModalBtn" class="btn-secondary"><i class="ph ph-x"></i> Close</button>
+            </div>
+            <div id="modalCardContainer" style="background: white; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; transform-origin: top center;">
+                <!-- Cloned card goes here -->
+            </div>
+        </div>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            // YOU MUST REPLACE THIS WITH YOUR EMAILJS PUBLIC KEY
+            // Go to https://dashboard.emailjs.com/admin/account
+            emailjs.init("YOUR_PUBLIC_KEY_HERE");
+        })();
+    </script>
+    <script src="document.js?v=2.20"></script>
+</body>
+</html>
