@@ -861,11 +861,14 @@ document.addEventListener('DOMContentLoaded', () => {
         addStudentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Frontend demo account block
+            // Frontend demo account - max 10 students check
             const currentUser = sessionStorage.getItem('currentUser');
             if (currentUser === 'demo@school.com') {
-                alert('🚫 Adding new students is disabled in the Demo account.\n\nThe Demo account has 10 fixed students that you can edit and explore. Please Sign Up to create your own account with unlimited students!');
-                return;
+                const db = getDb();
+                if (db.length >= 10) {
+                    alert('🚫 Demo account has reached the 10 student limit!\n\nYou cannot add or delete students once the limit is reached. Please Sign Up for unlimited students.');
+                    return;
+                }
             }
             
             const student = {
@@ -902,11 +905,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const deleteBtn = e.target.closest('.delete-btn');
             if (deleteBtn) {
                 const id = deleteBtn.getAttribute('data-id');
-                // Frontend demo account block for delete
+                // Demo account: block delete when 10 students exist
                 const currentUser = sessionStorage.getItem('currentUser');
                 if (currentUser === 'demo@school.com') {
-                    alert('🚫 Deleting students is disabled in the Demo account.\n\nYou can only view and explore the 10 pre-set demo students. Please Sign Up to manage your own students!');
-                    return;
+                    const db = getDb();
+                    if (db.length >= 10) {
+                        alert('🚫 Demo account has reached the 10 student limit!\n\nYou cannot add or delete students once the limit is reached. Please Sign Up for unlimited access.');
+                        return;
+                    }
                 }
                 if(confirm("Are you sure you want to delete this student? This cannot be undone.")) {
                     let db = getDb();
@@ -924,16 +930,16 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteAllStudentsBtn.addEventListener('click', async () => {
             const db = getDb();
             if (!db.length) { alert('The database is already empty!'); return; }
-            // Frontend demo account block for delete all
+            // Demo account: block delete all when 10 students exist
             const currentUser = sessionStorage.getItem('currentUser');
-            if (currentUser === 'demo@school.com') {
-                alert('🚫 Deleting students is disabled in the Demo account.\n\nPlease Sign Up to create your own account with full control!');
+            if (currentUser === 'demo@school.com' && db.length >= 10) {
+                alert('🚫 Demo account has reached the 10 student limit!\n\nYou cannot add or delete students once the limit is reached. Please Sign Up for unlimited access.');
                 return;
             }
             if (confirm(`⚠️ Are you sure you want to delete ALL ${db.length} students?\nThis action cannot be undone!`)) {
                 await saveDb([]);
                 renderDbTable();
-                alert('✅ All students deleted! You can now re-import from Excel.');
+                alert('✅ All students deleted!');
             }
         });
     }
@@ -1163,14 +1169,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // Frontend demo account block for import
-            const currentUser = sessionStorage.getItem('currentUser');
-            if (currentUser === 'demo@school.com') {
-                alert('🚫 Importing data is disabled in the Demo account.\n\nThe Demo account has 10 fixed students for demonstration. Please Sign Up to import your own class data!');
-                importDbFile.value = '';
-                return;
-            }
-
             const reader = new FileReader();
             reader.onload = async function(event) {
                 const csvText = event.target.result;
@@ -1211,6 +1209,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (importedData.length > 0) {
+                    // Demo account import limit check
+                    const currentUser = sessionStorage.getItem('currentUser');
+                    if (currentUser === 'demo@school.com' && importedData.length > 10) {
+                        alert(`🚫 Demo account allows a maximum of 10 students only!\n\nYour file has ${importedData.length} students. Only the first 10 will be imported.`);
+                        importedData = importedData.slice(0, 10);
+                    }
                     const existingDb = getDb();
                     if (confirm("Do you want to REPLACE the entire database with this file?\n\nClick OK to Replace, or Cancel to Merge instead.")) {
                         await saveDb(importedData);

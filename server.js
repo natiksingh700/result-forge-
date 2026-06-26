@@ -943,14 +943,18 @@ app.post('/api/students', async (req, res) => {
     
     // Validate demo account limits
     if (user_email === 'demo@school.com') {
-        if (students.length > 10) {
-            return res.status(400).json({ error: "In the Demo account, you cannot save more than 10 students. Please sign up to create your own database without limits!" });
+        // Check current count in DB
+        const existing = await pool.query(`SELECT COUNT(*) FROM students WHERE user_email = $1`, [user_email]);
+        const currentCount = parseInt(existing.rows[0].count);
+        
+        // If already 10 students, block any changes (no add, no delete)
+        if (currentCount >= 10) {
+            return res.status(400).json({ error: "🚫 Demo account has reached the 10 student limit! You cannot add or delete students once the limit is reached. Please Sign Up for unlimited access." });
         }
-        const hasCustomStudent = students.some(s => !s.id.startsWith('demo-student-'));
-        if (hasCustomStudent) {
-            return res.status(400).json({ 
-                error: "Adding new custom students is disabled in the Demo account to prevent spam. You can only edit the pre-existing 10 demo students. Please sign up to add your own custom students!" 
-            });
+        
+        // If trying to add more than 10
+        if (students.length > 10) {
+            return res.status(400).json({ error: "🚫 Demo account allows a maximum of 10 students only. Please Sign Up for unlimited students." });
         }
     }
     
