@@ -1261,6 +1261,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const importedData = [];
                 const makeImportId = () => 'import_' + (globalThis.crypto?.randomUUID?.() || (Date.now() + '_' + Math.random().toString(36).slice(2)));
                 const clean = value => String(value ?? '').trim();
+                // School exports use NA/NOT AVAILABLE as placeholders, not real PEN IDs.
+                const cleanPen = value => {
+                    const pen = clean(value).toUpperCase();
+                    return ['', 'NA', 'N/A', 'NOT AVAILABLE', 'NOT APPLICABLE', 'NONE', 'NULL', '-', '--'].includes(pen) ? '' : pen;
+                };
                 const normal = value => clean(value).toLowerCase().replace(/[^a-z0-9]/g, '');
                 const normalizeImportedClass = value => {
                     const raw = clean(value).toUpperCase().replace(/\s+/g, '');
@@ -1392,13 +1397,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 function addImportedStudent(student) {
                     if (!student.classSection) student.classSection = 'UNSPECIFIED';
                     if (!student.studentName) student.studentName = 'Unnamed Student ' + (importedData.length + 1);
-                    const pen = clean(student.studentPen || student.panId).toUpperCase();
+                    const pen = cleanPen(student.studentPen || student.panId);
                     const classKey = normal(normalizeImportedClass(student.classSection));
                     const nameKey = normal(student.studentName);
                     // Same child appearing twice in a workbook is one record.
                     // Distinct PENs are kept as distinct students, even if names match.
                     const match = importedData.find(existing => {
-                        const existingPen = clean(existing.studentPen || existing.panId).toUpperCase();
+                        const existingPen = cleanPen(existing.studentPen || existing.panId);
                         if (pen && existingPen) return pen === existingPen;
                         return !pen && !existingPen &&
                             normal(normalizeImportedClass(existing.classSection)) === classKey &&
@@ -1427,7 +1432,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const currentUser = sessionStorage.getItem('currentUser');
                 const existingDb = getDb();
                 const mergeDatabase = confirm(
-                    "Found " + importedData.length + " rows. Duplicate rows will also be imported.\\n\\nClick OK to ADD all rows to your existing students (recommended).\\nClick Cancel to REPLACE the entire database."
+                    "Found " + importedData.length + " unique student records.\\n\\nClick OK to ADD them to your existing students (recommended).\\nClick Cancel to REPLACE the entire database."
                 );
                 const replaceDatabase = !mergeDatabase;
 
@@ -1451,7 +1456,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Add only students not already in the account; update matching records with any missing imported details.
                     const merged = [];
                     const mergeOneStudent = incoming => {
-                        const incomingPen = clean(incoming.studentPen || incoming.panId).toUpperCase();
+                        const incomingPen = cleanPen(incoming.studentPen || incoming.panId);
                         const matchIndex = merged.findIndex(existing => {
                             const existingPen = clean(existing.studentPen || existing.panId).toUpperCase();
                             if (incomingPen && existingPen) return incomingPen === existingPen;
