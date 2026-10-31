@@ -265,6 +265,13 @@
                             <input type="text" id="dob" value="">
                         </div>
                     </div>
+                    <div class="form-group half">
+                        <label>PAN ID</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-identification-card"></i>
+                            <input type="text" id="panId" maxlength="10" placeholder="ABCDE1234F">
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="form-row">
@@ -422,6 +429,13 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-group half">
+                        <label>PAN ID</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-identification-card"></i>
+                            <input type="text" id="dbPanId" maxlength="10" placeholder="ABCDE1234F">
+                        </div>
+                    </div>
                     <button type="submit" class="btn-primary"><i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Save Student</button>
                 </form>
 
@@ -571,6 +585,10 @@
                         <td class="value-green" id="dispAddress"></td>
                         <td class="label-green">DOB:</td>
                         <td class="value-green" id="dispDob"></td>
+                    </tr>
+                    <tr>
+                        <td class="label-green">PAN ID:</td>
+                        <td class="value-green" id="dispPanId" colspan="3"></td>
                     </tr>
                 </table>
 
