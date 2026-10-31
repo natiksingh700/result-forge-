@@ -1252,9 +1252,8 @@ td:first-child {
 
 @media print {
     @page {
-        size: A4;
-        /* Extra printer-safe area prevents the bottom/side frame from being clipped. */
-        margin: 6mm 6mm 7mm;
+        size: A4 portrait;
+        margin: 0;
     }
 
     body {
@@ -1316,11 +1315,13 @@ td:first-child {
         box-shadow: none !important;
         border-radius: 0 !important;
         margin: 0 auto !important;
-        width: 198mm !important;
-        max-width: 198mm !important;
-        min-height: 0 !important;
-        height: auto !important;
-        padding: 8mm 7mm 11mm !important;
+        /* One result card occupies one complete A4 portrait sheet. */
+        width: 210mm !important;
+        max-width: 210mm !important;
+        min-width: 210mm !important;
+        min-height: 297mm !important;
+        height: 297mm !important;
+        padding: 10mm 10mm 12mm !important;
         page-break-after: auto !important;
         break-inside: auto !important;
         page-break-inside: auto !important;
