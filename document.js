@@ -1367,9 +1367,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const currentUser = sessionStorage.getItem('currentUser');
                 const existingDb = getDb();
-                const replaceDatabase = confirm(
-                    "Do you want to REPLACE the entire database with this file?\\n\\nClick OK to Replace, or Cancel to Merge instead."
+                const mergeDatabase = confirm(
+                    "Found " + importedData.length + " unique students.\\n\\nClick OK to MERGE with your existing students (recommended).\\nClick Cancel to REPLACE the entire database."
                 );
+                const replaceDatabase = !mergeDatabase;
 
                 // Preserve the demo account's 10-student maximum for both
                 // replacement and merge imports.
