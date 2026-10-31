@@ -1259,7 +1259,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Read every worksheet. Supports both Result Forge backups (22 columns)
                 // and school student lists (S.No, Class, Name, PEN, Father, Mother).
                 const importedData = [];
-                const seenStudents = new Map();
+                const makeImportId = () => 'import_' + (globalThis.crypto?.randomUUID?.() || (Date.now() + '_' + Math.random().toString(36).slice(2)));
                 const clean = value => String(value ?? '').trim();
                 const normal = value => clean(value).toLowerCase().replace(/[^a-z0-9]/g, '');
                 const normalizeImportedClass = value => {
@@ -1313,7 +1313,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         rows.slice(headerIndex + 1).forEach((row, index) => {
                             if (isBlankRow(row) || row.length < 7) return;
                             const student = {
-                                id: clean(row[0]) || ('import_' + Date.now() + '_' + sheetIndex + '_' + index),
+                                id: makeImportId(),
                                 classSection: clean(row[1]),
                                 studentName: clean(row[2]),
                                 fatherName: clean(row[3]),
@@ -1390,22 +1390,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 function addImportedStudent(student) {
-                    if (!student.classSection || !student.studentName) return;
-                    const penKey = clean(student.studentPen);
-                    const identity = penKey
-                        ? 'pen:' + penKey
-                        : 'name:' + normal(student.classSection) + ':' + normal(student.studentName);
-                    if (seenStudents.has(identity)) {
-                        const existingIndex = seenStudents.get(identity);
-                        const existing = importedData[existingIndex];
-                        existing.studentPen = existing.studentPen || student.studentPen || '';
-                        existing.panId = existing.panId || student.panId || student.studentPen || '';
-                        existing.fatherName = existing.fatherName || student.fatherName || '';
-                        existing.motherName = existing.motherName || student.motherName || '';
-                        existing.extraDetails = { ...(existing.extraDetails || {}), ...(student.extraDetails || {}) };
-                        return;
-                    }
-                    seenStudents.set(identity, importedData.length);
+                    // Every non-empty spreadsheet row is a separate record.
+                    // Never deduplicate by student name, PEN, or any other field.
+                    if (!student.classSection) student.classSection = 'UNSPECIFIED';
+                    if (!student.studentName) student.studentName = 'Unnamed Student ' + (importedData.length + 1);
+                    student.id = makeImportId();
                     importedData.push(student);
                 }
 
@@ -1438,30 +1427,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (replaceDatabase) {
                     await saveDb(importedData);
                 } else {
-                    // Merge while enriching existing matching students with imported PEN IDs.
-                    const merged = existingDb.map(student => ({ ...student, classSection: normalizeImportedClass(student.classSection) }));
-                    importedData.forEach(imported => {
-                        const importedPen = clean(imported.studentPen || imported.panId);
-                        const matchIndex = merged.findIndex(existing => {
-                            const existingPen = clean(existing.studentPen || existing.panId);
-                            if (importedPen && existingPen && importedPen === existingPen) return true;
-                            return normalizeClassValue(existing.classSection) === normalizeClassValue(imported.classSection) &&
-                                normal(existing.studentName) === normal(imported.studentName);
-                        });
-                        if (matchIndex >= 0) {
-                            const existing = merged[matchIndex];
-                            merged[matchIndex] = {
-                                ...existing,
-                                studentPen: importedPen || existing.studentPen || '',
-                                panId: importedPen || existing.panId || '',
-                                fatherName: existing.fatherName || imported.fatherName || '',
-                                motherName: existing.motherName || imported.motherName || '',
-                                extraDetails: { ...(existing.extraDetails || {}), ...(imported.extraDetails || {}) }
-                            };
-                        } else {
-                            merged.push(imported);
-                        }
-                    });
+                    // Append every imported row. Existing or repeated students remain separate records.
+                    const merged = existingDb.concat(importedData);
                     await saveDb(merged);
                 }
 
