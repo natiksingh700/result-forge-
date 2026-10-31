@@ -2044,17 +2044,26 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dispExamName').textContent = document.getElementById('examName') ? document.getElementById('examName').value : 'FINAL EXAM Marks Statement';
         document.getElementById('dispSessionYear').textContent = document.getElementById('sessionYear') ? document.getElementById('sessionYear').value : '2023-2024';
         
-        // Co-Scholastic logic
-        const gDisc = document.getElementById('gradeDiscipline') ? document.getElementById('gradeDiscipline').value : '';
-        const gArt = document.getElementById('gradeArt') ? document.getElementById('gradeArt').value : '';
-        const gSports = document.getElementById('gradeSports') ? document.getElementById('gradeSports').value : '';
-        const gComp = document.getElementById('gradeComputer') ? document.getElementById('gradeComputer').value : '';
-        
-        if (document.getElementById('dispGradeDiscipline')) document.getElementById('dispGradeDiscipline').textContent = gDisc;
-        if (document.getElementById('dispGradeArt')) document.getElementById('dispGradeArt').textContent = gArt;
-        if (document.getElementById('dispGradeSports')) document.getElementById('dispGradeSports').textContent = gSports;
-        if (document.getElementById('dispGradeComputer')) document.getElementById('dispGradeComputer').textContent = gComp;
-        const coScholasticString = `${gDisc}|${gArt}|${gSports}|${gComp}`;
+        // Co-Scholastic grades are auto-assigned from the student's overall percentage.
+        // All four areas use the same percentage-based grade as requested.
+        const coScholasticGrade = percentage >= 90 ? 'A+' :
+            percentage >= 75 ? 'A' :
+            percentage >= 60 ? 'B' :
+            percentage >= 40 ? 'C' : 'D';
+
+        const coScholasticFields = [
+            ['gradeDiscipline', 'dispGradeDiscipline'],
+            ['gradeArt', 'dispGradeArt'],
+            ['gradeSports', 'dispGradeSports'],
+            ['gradeComputer', 'dispGradeComputer']
+        ];
+        coScholasticFields.forEach(([inputId, displayId]) => {
+            const input = document.getElementById(inputId);
+            if (input) input.value = coScholasticGrade;
+            const display = document.getElementById(displayId);
+            if (display) display.textContent = coScholasticGrade;
+        });
+        const coScholasticString = Array(4).fill(coScholasticGrade).join('|');
 
         const minMarksVal = parseFloat(document.getElementById('minMarks').value) || 33;
         const subjectNames = document.querySelectorAll('input[name="subjectName[]"]');
