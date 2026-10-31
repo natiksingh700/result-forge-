@@ -1408,19 +1408,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (replaceDatabase) {
                     await saveDb(importedData);
                 } else {
-                    // Merge safely: keep existing records and skip matching PEN or class/name duplicates.
+                    // Merge while enriching existing matching students with imported PEN IDs.
                     const merged = existingDb.map(student => ({ ...student, classSection: normalizeImportedClass(student.classSection) }));
-                    const existingKeys = new Set();
-                    merged.forEach(student => {
-                        const pen = clean(student.studentPen);
-                        existingKeys.add(pen ? 'pen:' + pen : 'name:' + normal(student.classSection) + ':' + normal(student.studentName));
-                    });
-                    importedData.forEach(student => {
-                        const pen = clean(student.studentPen);
-                        const key = pen ? 'pen:' + pen : 'name:' + normal(student.classSection) + ':' + normal(student.studentName);
-                        if (!existingKeys.has(key)) {
-                            merged.push(student);
-                            existingKeys.add(key);
+                    importedData.forEach(imported => {
+                        const importedPen = clean(imported.studentPen || imported.panId);
+                        const matchIndex = merged.findIndex(existing => {
+                            const existingPen = clean(existing.studentPen || existing.panId);
+                            if (importedPen && existingPen && importedPen === existingPen) return true;
+                            return normalizeClassValue(existing.classSection) === normalizeClassValue(imported.classSection) &&
+                                normal(existing.studentName) === normal(imported.studentName);
+                        });
+                        if (matchIndex >= 0) {
+                            const existing = merged[matchIndex];
+                            merged[matchIndex] = {
+                                ...existing,
+                                studentPen: importedPen || existing.studentPen || '',
+                                panId: importedPen || existing.panId || '',
+                                fatherName: existing.fatherName || imported.fatherName || '',
+                                motherName: existing.motherName || imported.motherName || ''
+                            };
+                        } else {
+                            merged.push(imported);
                         }
                     });
                     await saveDb(merged);
@@ -1600,7 +1608,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('address').value = student.address || '';
         document.getElementById('dob').value = student.dob || '';
         const panInput = document.getElementById('panId');
-        if (panInput) panInput.value = student.panId || '';
+        if (panInput) panInput.value = student.panId || student.studentPen || '';
         
         // Load existing term details if they exist in DB
         if (student.termName) document.getElementById('termName').value = student.termName;
