@@ -1346,7 +1346,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             /^(name|student name|list of all students)/i.test(name)) return;
                         addImportedStudent({
                             id: 'import_' + Date.now() + '_' + sheetIndex + '_' + index + '_' + Math.random().toString(36).slice(2, 8),
-                            classSection: cls,
+                            classSection: normalizeImportedClass(cls),
                             studentName: name,
                             studentPen: pen,
                             fatherName: father,
