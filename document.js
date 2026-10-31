@@ -107,6 +107,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentDbState = [];
 
+    // Treat Roman numeral class labels in older imports as the matching app class.
+    function normalizeClassValue(value) {
+        const raw = String(value ?? '').trim().toUpperCase().replace(/\\s+/g, '');
+        const romanClasses = {
+            I: '1ST', II: '2ND', III: '3RD', IV: '4TH', V: '5TH',
+            VI: '6TH', VII: '7TH', VIII: '8TH', IX: '9TH', X: '10TH'
+        };
+        return romanClasses[raw] || raw;
+    }
+
     function apiFetch(url, options = {}) {
         const token = sessionStorage.getItem('authToken');
         const headers = { ...(options.headers || {}) };
@@ -821,7 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cls = selectClassToGen.value;
             if (typeof currentClassList !== 'undefined') {
                 const activeStudentId = currentClassList[currentStudentIndex]?.id;
-                currentClassList = data.filter(s => s.classSection === cls);
+                currentClassList = data.filter(s => normalizeClassValue(s.classSection) === normalizeClassValue(cls));
                 currentClassList.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }) || String(a.id).localeCompare(String(b.id)));
                 if (activeStudentId !== undefined) {
                     const activeIndex = currentClassList.findIndex(student => String(student.id) === String(activeStudentId));
@@ -1448,12 +1458,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             const freshDb = getDb();
-            let dbStudents = freshDb.filter(s => s.classSection === cls);
+            let dbStudents = freshDb.filter(s => normalizeClassValue(s.classSection) === normalizeClassValue(cls));
 
             // Also pull from Excel data directly (if class matches)
             if (excelImportedData && excelImportedData.length > 0) {
                 const excelForClass = excelImportedData.filter(ex =>
-                    ex.classSection && ex.classSection.trim().toUpperCase() === cls.trim().toUpperCase()
+                    ex.classSection && normalizeClassValue(ex.classSection) === normalizeClassValue(cls)
                 );
                 excelForClass.forEach(exS => {
                     const alreadyInDb = dbStudents.find(s =>
@@ -2135,7 +2145,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentClassList.length > 0 && currentStudentIndex < currentClassList.length) {
                     currentStudentId = currentClassList[currentStudentIndex].id;
                 }
-                currentClassList = freshDb.filter(s => s.classSection === cls);
+                currentClassList = freshDb.filter(s => normalizeClassValue(s.classSection) === normalizeClassValue(cls));
                 currentClassList.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }) || String(a.id).localeCompare(String(b.id)));
                 
                 if (currentStudentId !== null) {
@@ -2164,7 +2174,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentClassList.length > 0 && currentStudentIndex < currentClassList.length) {
                     currentStudentId = currentClassList[currentStudentIndex].id;
                 }
-                currentClassList = freshDb.filter(s => s.classSection === cls);
+                currentClassList = freshDb.filter(s => normalizeClassValue(s.classSection) === normalizeClassValue(cls));
                 currentClassList.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }) || String(a.id).localeCompare(String(b.id)));
                 
                 if (currentStudentId !== null) {
@@ -2197,7 +2207,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentStudentId = currentClassList[currentStudentIndex].id;
                 }
 
-                currentClassList = freshDb.filter(s => s.classSection === cls);
+                currentClassList = freshDb.filter(s => normalizeClassValue(s.classSection) === normalizeClassValue(cls));
                 currentClassList.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }) || String(a.id).localeCompare(String(b.id)));
                 
                 // Find their new position in the freshly sorted list
