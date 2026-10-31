@@ -1253,7 +1253,8 @@ td:first-child {
 @media print {
     @page {
         size: A4;
-        margin: 4mm;
+        /* Extra printer-safe area prevents the bottom/side frame from being clipped. */
+        margin: 6mm 6mm 7mm;
     }
 
     body {
@@ -1307,19 +1308,19 @@ td:first-child {
     }
 
     .result-card {
-        border: 5px solid #ea580c !important;
+        border: 4px solid #ea580c !important;
         outline: 1px solid #9a3412 !important;
-        outline-offset: -7px !important;
+        outline-offset: -6px !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
         box-shadow: none !important;
         border-radius: 0 !important;
         margin: 0 auto !important;
-        width: 202mm !important;
-        max-width: 202mm !important;
+        width: 198mm !important;
+        max-width: 198mm !important;
         min-height: 0 !important;
         height: auto !important;
-        padding: 9mm 8mm !important;
+        padding: 8mm 7mm 11mm !important;
         page-break-after: auto !important;
         break-inside: auto !important;
         page-break-inside: auto !important;
