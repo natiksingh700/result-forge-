@@ -1789,7 +1789,7 @@ document.addEventListener('DOMContentLoaded', () => {
         row.className = 'subject-row';
         row.innerHTML = `
             <input type="text" name="subjectName[]" placeholder="Subject" value="${sub}" required>
-            <input type="number" name="obtainedMarks[]" placeholder="Obtained / 100" value="${marks}" min="0" max="100">
+            <input type="text" name="obtainedMarks[]" placeholder="Marks / A (Absent)" value="${marks}" inputmode="decimal" autocomplete="off">
             <button type="button" class="btn-remove" title="Remove Subject">×</button>
         `;
         row.querySelector('.btn-remove').addEventListener('click', () => {
@@ -2058,21 +2058,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 0; i < subjectNames.length; i++) {
             const sub = subjectNames[i].value;
-            const marks = parseFloat(obtained[i].value) || 0;
+            const enteredValue = (obtained[i].value || '').trim().toUpperCase();
+            const isAbsent = enteredValue === 'A';
+            const numericMarks = isAbsent ? 0 : Number(enteredValue);
+            const marks = Number.isFinite(numericMarks) && numericMarks >= 0 && numericMarks <= 100 ? numericMarks : 0;
             grandTotal += marks;
 
             let grade = 'E';
-            if(marks >= 91) grade = 'A1';
-            else if(marks >= 81) grade = 'A2';
-            else if(marks >= 71) grade = 'B1';
-            else if(marks >= 61) grade = 'B2';
-            else if(marks >= 51) grade = 'C1';
-            else if(marks >= 41) grade = 'C2';
-            else if(marks >= minMarksVal) grade = 'D';
-
-            if(marks < minMarksVal) {
+            if (isAbsent) {
+                grade = 'A';
                 hasFailedSubjects = true;
-                failedSubjects.push(sub.toUpperCase());
+                failedSubjects.push(sub.toUpperCase() + ' (ABSENT)');
+            } else {
+                if(marks >= 91) grade = 'A1';
+                else if(marks >= 81) grade = 'A2';
+                else if(marks >= 71) grade = 'B1';
+                else if(marks >= 61) grade = 'B2';
+                else if(marks >= 51) grade = 'C1';
+                else if(marks >= 41) grade = 'C2';
+                else if(marks >= minMarksVal) grade = 'D';
+
+                if(marks < minMarksVal) {
+                    hasFailedSubjects = true;
+                    failedSubjects.push(sub.toUpperCase());
+                }
             }
 
             marksTableBody.innerHTML += `
@@ -2080,7 +2089,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${sub.toUpperCase()}</td>
                     <td>100</td>
                     <td>${minMarksVal}</td>
-                    <td>${marks}</td>
+                    <td>${isAbsent ? 'A' : marks}</td>
                     <td>${grade}</td>
                 </tr>
             `;
