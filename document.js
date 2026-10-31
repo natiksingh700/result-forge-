@@ -1406,7 +1406,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const currentUser = sessionStorage.getItem('currentUser');
                 const existingDb = getDb();
                 const mergeDatabase = confirm(
-                    "Found " + importedData.length + " unique students.\\n\\nClick OK to MERGE with your existing students (recommended).\\nClick Cancel to REPLACE the entire database."
+                    "Found " + importedData.length + " rows. Duplicate rows will also be imported.\\n\\nClick OK to ADD all rows to your existing students (recommended).\\nClick Cancel to REPLACE the entire database."
                 );
                 const replaceDatabase = !mergeDatabase;
 
