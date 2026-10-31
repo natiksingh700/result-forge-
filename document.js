@@ -1282,7 +1282,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Locate a header row even when a title/blank rows appear above it.
                     const headerIndex = rows.findIndex(row => {
                         const headers = row.map(normal);
-                        return headers.some(h => h === 'class' || h === 'classsection') &&
+                        return headers.some(h => ['class', 'classsection', 'classsectionname', 'standard', 'grade'].includes(h)) &&
                             headers.some(h => ['name', 'studentname', 'nameofstudent', 'studentsname', 'fullname'].includes(h));
                     });
                     const headers = headerIndex >= 0 ? rows[headerIndex].map(normal) : [];
@@ -2115,7 +2115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fullDb[dbIndex].fatherName = document.getElementById('fatherName').value;
                 fullDb[dbIndex].motherName = document.getElementById('motherName').value;
                 fullDb[dbIndex].classSection = document.getElementById('classSection').value;
-                fullDb[dbIndex].address = document.getElementById('address').value;
+                fullDb[dbIndex].address = ''; // Address is no longer collected or printed.
                 fullDb[dbIndex].dob = document.getElementById('dob').value;
                 fullDb[dbIndex].panId = (document.getElementById('panId')?.value || '').trim().toUpperCase();
                 fullDb[dbIndex].examName = document.getElementById('examName').value;
