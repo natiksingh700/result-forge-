@@ -947,6 +947,39 @@ app.post('/api/demo/reset', async (req, res) => {
     }
 });
 
+// Delete exactly one student for the signed-in account.
+app.delete('/api/students/:id', async (req, res) => {
+    const user_email = req.query.email;
+    const studentId = req.params.id;
+
+    if (!user_email || !studentId) {
+        return res.status(400).json({ error: "Email and student ID are required." });
+    }
+
+    // Demo account remains protected by the existing no-delete rule.
+    if (user_email === 'demo@school.com') {
+        return res.status(403).json({
+            error: "Deleting students is not allowed in the Demo account. Please use a registered account."
+        });
+    }
+
+    try {
+        const result = await pool.query(
+            'DELETE FROM students WHERE id = $1 AND user_email = $2 RETURNING id',
+            [studentId, user_email]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Student not found in this account. Please refresh the database and try again." });
+        }
+
+        return res.json({ message: "Student deleted successfully.", id: result.rows[0].id });
+    } catch (err) {
+        console.error("Student deletion error:", err);
+        return res.status(500).json({ error: "Unable to delete student right now. Please try again." });
+    }
+});
+
 app.post('/api/students', async (req, res) => {
     const { user_email, students } = req.body;
     if(!user_email || !students) return res.status(400).json({ error: "Email and students data required" });
