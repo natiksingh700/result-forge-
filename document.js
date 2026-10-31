@@ -1332,7 +1332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 overallGrade: clean(row[headers.indexOf('overallgrade')] ?? row[15]),
                                 cgpa: clean(row[headers.indexOf('cgpa')] ?? row[16]),
                                 resultStatus: clean(row[headers.indexOf('resultstatus')] ?? row[17]),
-                                autoRemark: clean(row[headers.indexOf('autorem​ark')] ?? row[18]),
+                                autoRemark: clean(row[headers.findIndex(h => h.replace(/[^a-z0-9]/g, '') === 'autoremark')] ?? row[18]),
                                 reopenDate: clean(row[headers.indexOf('reopendate')] ?? row[19]) || null,
                                 coScholasticData: clean(row[headers.indexOf('coscholasticdata')] ?? row[20]) || null,
                                 panId: clean(row[headers.indexOf('panid')] ?? row[headers.indexOf('studentpen')] ?? row[21]).toUpperCase(),
