@@ -1337,7 +1337,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!cls || !name || /^(class|total|grand total)$/i.test(cls) ||
                             /^(name|student name|list of all students)/i.test(name)) return;
                         addImportedStudent({
-                            id: 'import_' + (pen || (Date.now() + '_' + sheetIndex + '_' + index)),
+                            id: 'import_' + Date.now() + '_' + sheetIndex + '_' + index + '_' + Math.random().toString(36).slice(2, 8),
                             classSection: cls,
                             studentName: name,
                             studentPen: pen,
@@ -1389,7 +1389,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (replaceDatabase) {
                     await saveDb(importedData);
                 } else {
-                    const merged = existingDb.concat(importedData);
+                    // Merge safely: keep existing records and skip matching PEN or class/name duplicates.
+                    const merged = existingDb.slice();
+                    const existingKeys = new Set();
+                    merged.forEach(student => {
+                        const pen = clean(student.studentPen);
+                        existingKeys.add(pen ? 'pen:' + pen : 'name:' + normal(student.classSection) + ':' + normal(student.studentName));
+                    });
+                    importedData.forEach(student => {
+                        const pen = clean(student.studentPen);
+                        const key = pen ? 'pen:' + pen : 'name:' + normal(student.classSection) + ':' + normal(student.studentName);
+                        if (!existingKeys.has(key)) {
+                            merged.push(student);
+                            existingKeys.add(key);
+                        }
+                    });
                     await saveDb(merged);
                 }
 
