@@ -889,7 +889,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 fatherName: document.getElementById('dbFatherName').value,
                 motherName: document.getElementById('dbMotherName').value,
                 address: document.getElementById('dbAddress').value,
-                dob: document.getElementById('dbDob').value
+                dob: document.getElementById('dbDob').value,
+                panId: (document.getElementById('dbPanId').value || '').trim().toUpperCase()
             };
             const db = getDb();
             db.push(student);
@@ -1106,7 +1107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const importDbFile = document.getElementById('importDbFile');
 
     function convertToCSV(objArray) {
-        let str = "ID,Class/Section,Student Name,Father's Name,Mother's Name,Address,DOB,Exam Name,Session,Term,Min Marks,Subjects & Marks,Total Obtained,Max Marks,Percentage,Grade,CGPA,Result Status,Remarks,School Reopen,CoScholastic\r\n";
+        let str = "ID,Class/Section,Student Name,Father's Name,Mother's Name,Address,DOB,Exam Name,Session,Term,Min Marks,Subjects & Marks,Total Obtained,Max Marks,Percentage,Grade,CGPA,Result Status,Remarks,School Reopen,CoScholastic,PAN ID\r\n";
         for (let i = 0; i < objArray.length; i++) {
             const s = objArray[i];
             const exam = s.examName || '';
@@ -1124,7 +1125,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const reopen = s.reopenDate || '';
             const coSchol = (s.coScholasticData || '').replace(/"/g, '""');
 
-            str += `"${s.id}","${s.classSection}","${s.studentName}","${s.fatherName}","${s.motherName}","${s.address}","${s.dob}","${exam}","${sess}","${term}","${minM}","${subMarks}","${total}","${maxM}","${perc}","${grd}","${cgpa}","${status}","${rem}","${reopen}","${coSchol}"\r\n`;
+            const panId = (s.panId || '').replace(/"/g, '""');
+            str += `"${s.id}","${s.classSection}","${s.studentName}","${s.fatherName}","${s.motherName}","${s.address}","${s.dob}","${exam}","${sess}","${term}","${minM}","${subMarks}","${total}","${maxM}","${perc}","${grd}","${cgpa}","${status}","${rem}","${reopen}","${coSchol}","${panId}"\r\n`;
         }
         return str;
     }
@@ -1247,7 +1249,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         resultStatus: String(row[17] ?? ''),
                         autoRemark: String(row[18] ?? ''),
                         reopenDate: row[19] === '' || row[19] == null ? null : String(row[19]),
-                        coScholasticData: row[20] === '' || row[20] == null ? null : String(row[20])
+                        coScholasticData: row[20] === '' || row[20] == null ? null : String(row[20]),
+                        panId: row[21] === '' || row[21] == null ? '' : String(row[21]).trim().toUpperCase()
                     }));
 
                 if (importedData.length === 0) {
@@ -1461,6 +1464,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('classSection').value = student.classSection || '';
         document.getElementById('address').value = student.address || '';
         document.getElementById('dob').value = student.dob || '';
+        const panInput = document.getElementById('panId');
+        if (panInput) panInput.value = student.panId || '';
         
         // Load existing term details if they exist in DB
         if (student.termName) document.getElementById('termName').value = student.termName;
@@ -1795,6 +1800,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dispClassSection').textContent = document.getElementById('classSection').value;
         document.getElementById('dispAddress').textContent = document.getElementById('address').value;
         document.getElementById('dispDob').textContent = document.getElementById('dob').value;
+        const panDisplay = document.getElementById('dispPanId');
+        if (panDisplay) panDisplay.textContent = (document.getElementById('panId')?.value || '').toUpperCase();
         
         // Assign term info (Remarks will be auto-calculated)
         document.getElementById('dispReopen').textContent = document.getElementById('reopenDate').value;
@@ -1913,6 +1920,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fullDb[dbIndex].classSection = document.getElementById('classSection').value;
                 fullDb[dbIndex].address = document.getElementById('address').value;
                 fullDb[dbIndex].dob = document.getElementById('dob').value;
+                fullDb[dbIndex].panId = (document.getElementById('panId')?.value || '').trim().toUpperCase();
                 fullDb[dbIndex].examName = document.getElementById('examName').value;
                 fullDb[dbIndex].sessionYear = document.getElementById('sessionYear').value;
                 
@@ -2139,6 +2147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(q('#dispClassSection')) q('#dispClassSection').textContent = student.classSection || '';
         if(q('#dispAddress')) q('#dispAddress').textContent = student.address || '';
         if(q('#dispDob')) q('#dispDob').textContent = student.dob || '';
+        if(q('#dispPanId')) q('#dispPanId').textContent = (student.panId || '').toUpperCase();
         
         if(q('#dispTermName')) q('#dispTermName').textContent = (student.termName || '').toUpperCase();
         if(q('#dispExamName')) q('#dispExamName').textContent = student.examName || '';
