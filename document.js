@@ -800,21 +800,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectClassToGen && selectClassToGen.value) {
             const cls = selectClassToGen.value;
             if (typeof currentClassList !== 'undefined') {
+                const activeStudentId = currentClassList[currentStudentIndex]?.id;
                 currentClassList = data.filter(s => s.classSection === cls);
-                currentClassList.sort((a, b) => {
-                    const aPending = !a.subjectsData;
-                    const bPending = !b.subjectsData;
-                    if (aPending && !bPending) return -1;
-                    if (!aPending && bPending) return 1;
-                    return a.studentName.localeCompare(b.studentName);
-                });
+                currentClassList.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }) || String(a.id).localeCompare(String(b.id)));
+                if (activeStudentId !== undefined) {
+                    const activeIndex = currentClassList.findIndex(student => String(student.id) === String(activeStudentId));
+                    if (activeIndex !== -1) currentStudentIndex = activeIndex;
+                }
                 const totalElem = document.getElementById('totalStudentsNum');
                 if (totalElem) totalElem.textContent = currentClassList.length;
                 
                 // Update dropdown from save
                 const studentSelect = document.getElementById('selectStudentToGenerate');
                 if (studentSelect) {
-                    const currentIndex = studentSelect.value;
+                    const currentIndex = String(currentStudentIndex);
                     studentSelect.innerHTML = '<option value="">-- Choose Student --</option>';
                     currentClassList.forEach((s, idx) => {
                         const opt = document.createElement('option');
@@ -841,7 +840,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const searchInput = document.getElementById('searchStudentInput');
                 if (searchInput) {
-                    searchInput.addEventListener('input', (e) => {
+                    // Assign instead of addEventListener so repeated saves do not stack handlers.
+                    searchInput.oninput = (e) => {
                         const term = e.target.value.toLowerCase();
                         const sSelect = document.getElementById('selectStudentToGenerate');
                         if (!sSelect) return;
@@ -857,7 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 opt.style.display = 'none';
                             }
                         });
-                    });
+                    };
                 }
                 
                 // Remove the redundant studentSelect lookup since it's already in scope if we want to use it
@@ -1368,13 +1368,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             currentClassList = dbStudents;
-            currentClassList.sort((a, b) => {
-                const aPending = !a.subjectsData;
-                const bPending = !b.subjectsData;
-                if (aPending && !bPending) return -1;
-                if (!aPending && bPending) return 1;
-                return a.studentName.localeCompare(b.studentName);
-            });
+            currentClassList.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }) || String(a.id).localeCompare(String(b.id)));
 
             if (currentClassList.length === 0) {
                 studentProgress.classList.remove('hidden');
@@ -1467,7 +1461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadStudent(index) {
-        if(index >= currentClassList.length) return;
+        if (!Number.isInteger(index) || index < 0 || index >= currentClassList.length) return;
         
         // Update dropdown if available
         const studentSelect = document.getElementById('selectStudentToGenerate');
@@ -1774,6 +1768,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Debounce result persistence: live preview fires on every input/change event.
+    // This prevents overlapping full-database writes while keeping the latest edits.
+    let resultSaveTimer = null;
+    function scheduleResultSave(data) {
+        if (resultSaveTimer) clearTimeout(resultSaveTimer);
+        resultSaveTimer = setTimeout(() => {
+            resultSaveTimer = null;
+            saveDb(data);
+        }, 450);
+    }
+
     resultForm.addEventListener('submit', (e) => {
         if(e && e.preventDefault) e.preventDefault();
         // Animate layout to split screen if not already
@@ -1956,7 +1961,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fullDb[dbIndex].cgpa = cgpa;
                 fullDb[dbIndex].resultStatus = resultStatus;
                 fullDb[dbIndex].autoRemark = autoRemark;
-                saveDb(fullDb);
+                scheduleResultSave(fullDb);
             }
         }
 
@@ -2019,13 +2024,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentStudentId = currentClassList[currentStudentIndex].id;
                 }
                 currentClassList = freshDb.filter(s => s.classSection === cls);
-                currentClassList.sort((a, b) => {
-                    const aPending = !a.subjectsData;
-                    const bPending = !b.subjectsData;
-                    if (aPending && !bPending) return -1;
-                    if (!aPending && bPending) return 1;
-                    return a.studentName.localeCompare(b.studentName);
-                });
+                currentClassList.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }) || String(a.id).localeCompare(String(b.id)));
                 
                 if (currentStudentId !== null) {
                     const newIndex = currentClassList.findIndex(s => s.id === currentStudentId);
@@ -2054,13 +2053,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentStudentId = currentClassList[currentStudentIndex].id;
                 }
                 currentClassList = freshDb.filter(s => s.classSection === cls);
-                currentClassList.sort((a, b) => {
-                    const aPending = !a.subjectsData;
-                    const bPending = !b.subjectsData;
-                    if (aPending && !bPending) return -1;
-                    if (!aPending && bPending) return 1;
-                    return a.studentName.localeCompare(b.studentName);
-                });
+                currentClassList.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }) || String(a.id).localeCompare(String(b.id)));
                 
                 if (currentStudentId !== null) {
                     const newIndex = currentClassList.findIndex(s => s.id === currentStudentId);
@@ -2093,13 +2086,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 currentClassList = freshDb.filter(s => s.classSection === cls);
-                currentClassList.sort((a, b) => {
-                    const aPending = !a.subjectsData;
-                    const bPending = !b.subjectsData;
-                    if (aPending && !bPending) return -1;
-                    if (!aPending && bPending) return 1;
-                    return a.studentName.localeCompare(b.studentName);
-                });
+                currentClassList.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }) || String(a.id).localeCompare(String(b.id)));
                 
                 // Find their new position in the freshly sorted list
                 if (currentStudentId !== null) {
