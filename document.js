@@ -1156,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const importDbFile = document.getElementById('importDbFile');
 
     function convertToCSV(objArray) {
-        let str = "ID,Class/Section,Student Name,Father's Name,Mother's Name,Address,DOB,Exam Name,Session,Term,Min Marks,Subjects & Marks,Total Obtained,Max Marks,Percentage,Grade,CGPA,Result Status,Remarks,School Reopen,CoScholastic,PAN ID\r\n";
+        let str = "ID,Class/Section,Student Name,Father's Name,Mother's Name,PAN / PEN ID,DOB,Exam Name,Session,Term,Min Marks,Subjects & Marks,Total Obtained,Max Marks,Percentage,Grade,CGPA,Result Status,Remarks,School Reopen,CoScholastic\r\n";
         for (let i = 0; i < objArray.length; i++) {
             const s = objArray[i];
             const exam = s.examName || '';
@@ -1175,7 +1175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const coSchol = (s.coScholasticData || '').replace(/"/g, '""');
 
             const panId = (s.panId || '').replace(/"/g, '""');
-            str += `"${s.id}","${s.classSection}","${s.studentName}","${s.fatherName}","${s.motherName}","${s.address}","${s.dob}","${exam}","${sess}","${term}","${minM}","${subMarks}","${total}","${maxM}","${perc}","${grd}","${cgpa}","${status}","${rem}","${reopen}","${coSchol}","${panId}"\r\n`;
+            str += `"${s.id}","${s.classSection}","${s.studentName}","${s.fatherName}","${s.motherName}","${panId}","${s.dob}","${exam}","${sess}","${term}","${minM}","${subMarks}","${total}","${maxM}","${perc}","${grd}","${cgpa}","${status}","${rem}","${reopen}","${coSchol}"\r\n`;
         }
         return str;
     }
