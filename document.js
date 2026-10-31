@@ -1390,10 +1390,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 function addImportedStudent(student) {
-                    // Every non-empty spreadsheet row is a separate record.
-                    // Never deduplicate by student name, PEN, or any other field.
                     if (!student.classSection) student.classSection = 'UNSPECIFIED';
                     if (!student.studentName) student.studentName = 'Unnamed Student ' + (importedData.length + 1);
+                    const pen = clean(student.studentPen || student.panId).toUpperCase();
+                    const classKey = normal(normalizeImportedClass(student.classSection));
+                    const nameKey = normal(student.studentName);
+                    // Same child appearing twice in a workbook is one record.
+                    // Distinct PENs are kept as distinct students, even if names match.
+                    const match = importedData.find(existing => {
+                        const existingPen = clean(existing.studentPen || existing.panId).toUpperCase();
+                        if (pen && existingPen) return pen === existingPen;
+                        return !pen && !existingPen &&
+                            normal(normalizeImportedClass(existing.classSection)) === classKey &&
+                            normal(existing.studentName) === nameKey;
+                    });
+                    if (match) {
+                        Object.entries(student).forEach(([key, value]) => {
+                            if (key === 'id') return;
+                            if (key === 'extraDetails') {
+                                match.extraDetails = { ...(match.extraDetails || {}), ...(value || {}) };
+                            } else if ((match[key] === undefined || match[key] === null || match[key] === '') && value !== '') {
+                                match[key] = value;
+                            }
+                        });
+                        return;
+                    }
                     student.id = makeImportId();
                     importedData.push(student);
                 }
@@ -1427,8 +1448,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (replaceDatabase) {
                     await saveDb(importedData);
                 } else {
-                    // Append every imported row. Existing or repeated students remain separate records.
-                    const merged = existingDb.concat(importedData);
+                    // Add only students not already in the account; update matching records with any missing imported details.
+                    const merged = existingDb.map(student => ({ ...student }));
+                    importedData.forEach(imported => {
+                        const importedPen = clean(imported.studentPen || imported.panId).toUpperCase();
+                        const matchIndex = merged.findIndex(existing => {
+                            const existingPen = clean(existing.studentPen || existing.panId).toUpperCase();
+                            if (importedPen && existingPen) return importedPen === existingPen;
+                            return !importedPen && !existingPen &&
+                                normal(normalizeImportedClass(existing.classSection)) === normal(normalizeImportedClass(imported.classSection)) &&
+                                normal(existing.studentName) === normal(imported.studentName);
+                        });
+                        if (matchIndex < 0) {
+                            merged.push(imported);
+                        } else {
+                            const existing = merged[matchIndex];
+                            merged[matchIndex] = {
+                                ...existing,
+                                ...Object.fromEntries(Object.entries(imported).filter(([key, value]) =>
+                                    key !== 'id' && (existing[key] === undefined || existing[key] === null || existing[key] === '') && value !== ''
+                                )),
+                                extraDetails: { ...(existing.extraDetails || {}), ...(imported.extraDetails || {}) }
+                            };
+                        }
+                    });
                     await saveDb(merged);
                 }
 
@@ -1493,34 +1536,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const freshDb = getDb();
             let dbStudents = freshDb.filter(s => normalizeClassValue(s.classSection) === normalizeClassValue(cls));
 
-            // Also pull from Excel data directly (if class matches)
-            if (excelImportedData && excelImportedData.length > 0) {
-                const excelForClass = excelImportedData.filter(ex =>
-                    ex.classSection && normalizeClassValue(ex.classSection) === normalizeClassValue(cls)
-                );
-                excelForClass.forEach(exS => {
-                    const alreadyInDb = dbStudents.find(s =>
-                        s.studentName.trim().toUpperCase() === exS.name.trim().toUpperCase()
-                    );
-                    if (!alreadyInDb) {
-                        // Add to DB and to list
-                        const newStudent = {
-                            id: 'ex_' + Date.now() + Math.random().toString(36).slice(2,5),
-                            studentName: exS.name,
-                            fatherName: exS.fatherName || '',
-                            motherName: exS.motherName || '',
-                            classSection: exS.classSection || cls,
-                            address: '',
-                            dob: ''
-                        };
-                        freshDb.push(newStudent);
-                        dbStudents.push(newStudent);
-                    }
-                });
-                // Sync to DB if new students were added
-                saveDb(freshDb);
-                renderDbTable();
-            }
+            // Student rows are saved by the Excel import handlers; do not append
+            // the temporary marks-import cache here, as that can create duplicates.
 
             currentClassList = dbStudents;
             currentClassList.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }) || String(a.id).localeCompare(String(b.id)));
@@ -1819,7 +1836,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const db = getDb();
         let addedCount = 0;
         excelImportedData.forEach(exS => {
-            const exists = db.find(s => s.studentName.trim().toUpperCase() === exS.name);
+            const normalizeStudentKey = value => String(value || '').trim().toUpperCase().replace(/\\s+/g, ' ');
+            const exists = db.find(s =>
+                normalizeStudentKey(s.studentName) === normalizeStudentKey(exS.name) &&
+                (!exS.classSection || !s.classSection || normalizeStudentKey(s.classSection) === normalizeStudentKey(exS.classSection))
+            );
             if (!exists) {
                 db.push({
                     id: Date.now().toString() + Math.random().toString(36).slice(2,6),
