@@ -2044,27 +2044,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dispExamName').textContent = document.getElementById('examName') ? document.getElementById('examName').value : 'FINAL EXAM Marks Statement';
         document.getElementById('dispSessionYear').textContent = document.getElementById('sessionYear') ? document.getElementById('sessionYear').value : '2023-2024';
         
-        // Co-Scholastic grades are auto-assigned from the student's overall percentage.
-        // All four areas use the same percentage-based grade as requested.
-        const coScholasticGrade = percentage >= 90 ? 'A+' :
-            percentage >= 75 ? 'A' :
-            percentage >= 60 ? 'B' :
-            percentage >= 40 ? 'C' : 'D';
-
-        const coScholasticFields = [
-            ['gradeDiscipline', 'dispGradeDiscipline'],
-            ['gradeArt', 'dispGradeArt'],
-            ['gradeSports', 'dispGradeSports'],
-            ['gradeComputer', 'dispGradeComputer']
-        ];
-        coScholasticFields.forEach(([inputId, displayId]) => {
-            const input = document.getElementById(inputId);
-            if (input) input.value = coScholasticGrade;
-            const display = document.getElementById(displayId);
-            if (display) display.textContent = coScholasticGrade;
-        });
-        const coScholasticString = Array(4).fill(coScholasticGrade).join('|');
-
         const minMarksVal = parseFloat(document.getElementById('minMarks').value) || 33;
         const subjectNames = document.querySelectorAll('input[name="subjectName[]"]');
         const obtained = document.querySelectorAll('input[name="obtainedMarks[]"]');
@@ -2108,6 +2087,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const percentage = (grandTotal / maxTotalMarks) * 100;
+
+        // Co-Scholastic grades are auto-assigned from the student's overall percentage.
+        // All four areas use the same percentage-based grade as requested.
+        const coScholasticGrade = percentage >= 90 ? 'A+' :
+            percentage >= 75 ? 'A' :
+            percentage >= 60 ? 'B' :
+            percentage >= 40 ? 'C' : 'D';
+
+        const coScholasticFields = [
+            ['gradeDiscipline', 'dispGradeDiscipline'],
+            ['gradeArt', 'dispGradeArt'],
+            ['gradeSports', 'dispGradeSports'],
+            ['gradeComputer', 'dispGradeComputer']
+        ];
+        coScholasticFields.forEach(([inputId, displayId]) => {
+            const input = document.getElementById(inputId);
+            if (input) input.value = coScholasticGrade;
+            const display = document.getElementById(displayId);
+            if (display) display.textContent = coScholasticGrade;
+        });
+        const coScholasticString = Array(4).fill(coScholasticGrade).join('|');
+
         
         let overallGrade = 'E';
         let autoRemark = 'Failed, please meet the class teacher.';
