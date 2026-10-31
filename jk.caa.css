@@ -1224,7 +1224,7 @@ td:first-child {
     width: 108px;
     height: 66px;
     object-fit: contain;
-    margin: -32px auto -8px;
+    margin: 0 auto 2px;
     position: relative;
     z-index: 3;
 }
