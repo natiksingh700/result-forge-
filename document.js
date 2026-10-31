@@ -106,10 +106,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // function saveAuthDb() ...
 
     let currentDbState = [];
+
+    function apiFetch(url, options = {}) {
+        const token = sessionStorage.getItem('authToken');
+        const headers = { ...(options.headers || {}) };
+        if (token) headers.Authorization = 'Bearer ' + token;
+        return fetch(url, { ...options, headers }).then(response => {
+            if (response.status === 401) {
+                sessionStorage.removeItem('currentUser');
+                sessionStorage.removeItem('authToken');
+                window.location.reload();
+            }
+            return response;
+        });
+    }
     
     async function loadSettingsFromServer(email) {
         try {
-            const res = await fetch(`/api/settings?email=${email}`);
+            const res = await apiFetch('/api/settings');
             const data = await res.json();
             if (data && data.email) {
                 if (data.logo_img) localStorage.setItem(`logoImg_${email}`, data.logo_img);
@@ -147,6 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Old email-only sessions are not trusted; require a fresh authenticated login.
+    if (sessionStorage.getItem('currentUser') && !sessionStorage.getItem('authToken')) {
+        sessionStorage.removeItem('currentUser');
+    }
     // Check Auto-Login and Initialize Data
     const currentUser = sessionStorage.getItem('currentUser');
     if(currentUser && authWrapper && mainAppWrapper) {
@@ -173,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         // Fetch students from backend
-        fetch(`/api/students?email=${currentUser}`)
+        apiFetch('/api/students')
             .then(res => res.json())
             .then(data => {
                 currentDbState = Array.isArray(data) ? data : [];
@@ -236,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (res.ok) {
                     sessionStorage.setItem('currentUser', data.email);
+                    sessionStorage.setItem('authToken', data.token);
                     loginForm.reset();
                     window.location.reload();
                 } else {
@@ -326,13 +345,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // If demo account - clear all students on logout
             if (currentUser === 'demo@school.com') {
                 try {
-                    await fetch('/api/demo/reset', { method: 'POST' });
+                    await apiFetch('/api/demo/reset', { method: 'POST' });
                 } catch(err) {
                     console.error('Demo reset failed:', err);
                 }
             }
             
             sessionStorage.removeItem('currentUser');
+            sessionStorage.removeItem('authToken');
             // Reload to clear state and show login screen
             window.location.reload();
         });
@@ -420,7 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const watermark = localStorage.getItem(`watermark_${currentUser}`) || null;
 
         try {
-            await fetch('/api/settings', {
+            await apiFetch('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -778,7 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Sync to backend
         try {
-            const res = await fetch('/api/students', {
+            const res = await apiFetch('/api/students', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_email: currentUser, students: data })
@@ -925,7 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if(confirm("Are you sure you want to delete this student? This cannot be undone.")) {
                     try {
-                        const response = await fetch(`/api/students/${encodeURIComponent(id)}?email=${encodeURIComponent(currentUser)}`, {
+                        const response = await apiFetch(`/api/students/${encodeURIComponent(id)}`, {
                             method: 'DELETE'
                         });
                         const result = await response.json().catch(() => ({}));
