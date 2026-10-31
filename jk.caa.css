@@ -1321,8 +1321,10 @@ td:first-child {
         height: auto !important;
         padding: 9mm 8mm !important;
         page-break-after: auto !important;
-        break-inside: avoid-page;
-        page-break-inside: avoid;
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
         overflow: visible !important;
         box-sizing: border-box !important;
     }
@@ -1348,11 +1350,20 @@ td:first-child {
     }
 
     table {
-        margin-bottom: 12px;
+        margin-bottom: 8px;
+    }
+
+    .marks-table tr,
+    .extra-details-table tr,
+    .remarks-table tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .signatures {
         margin-top: 15px;
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 }
 
