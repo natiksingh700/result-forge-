@@ -1449,29 +1449,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     await saveDb(importedData);
                 } else {
                     // Add only students not already in the account; update matching records with any missing imported details.
-                    const merged = existingDb.map(student => ({ ...student }));
-                    importedData.forEach(imported => {
-                        const importedPen = clean(imported.studentPen || imported.panId).toUpperCase();
+                    const merged = [];
+                    const mergeOneStudent = incoming => {
+                        const incomingPen = clean(incoming.studentPen || incoming.panId).toUpperCase();
                         const matchIndex = merged.findIndex(existing => {
                             const existingPen = clean(existing.studentPen || existing.panId).toUpperCase();
-                            if (importedPen && existingPen) return importedPen === existingPen;
-                            return !importedPen && !existingPen &&
-                                normal(normalizeImportedClass(existing.classSection)) === normal(normalizeImportedClass(imported.classSection)) &&
-                                normal(existing.studentName) === normal(imported.studentName);
+                            if (incomingPen && existingPen) return incomingPen === existingPen;
+                            return !incomingPen && !existingPen &&
+                                normal(normalizeImportedClass(existing.classSection)) === normal(normalizeImportedClass(incoming.classSection)) &&
+                                normal(existing.studentName) === normal(incoming.studentName);
                         });
                         if (matchIndex < 0) {
-                            merged.push(imported);
-                        } else {
-                            const existing = merged[matchIndex];
-                            merged[matchIndex] = {
-                                ...existing,
-                                ...Object.fromEntries(Object.entries(imported).filter(([key, value]) =>
-                                    key !== 'id' && (existing[key] === undefined || existing[key] === null || existing[key] === '') && value !== ''
-                                )),
-                                extraDetails: { ...(existing.extraDetails || {}), ...(imported.extraDetails || {}) }
-                            };
+                            merged.push({ ...incoming });
+                            return;
                         }
-                    });
+                        const existing = merged[matchIndex];
+                        merged[matchIndex] = {
+                            ...existing,
+                            ...Object.fromEntries(Object.entries(incoming).filter(([key, value]) =>
+                                key !== 'id' && (existing[key] === undefined || existing[key] === null || existing[key] === '') && value !== ''
+                            )),
+                            extraDetails: { ...(existing.extraDetails || {}), ...(incoming.extraDetails || {}) }
+                        };
+                    };
+                    // Clean pre-existing duplicate records as well, then add the new file's unique students.
+                    existingDb.forEach(mergeOneStudent);
+                    importedData.forEach(mergeOneStudent);
                     await saveDb(merged);
                 }
 
