@@ -1245,54 +1245,123 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error("The selected file does not contain a readable worksheet.");
                 }
 
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(firstSheet, {
-                    header: 1,
-                    defval: '',
-                    raw: false,
-                    blankrows: false
+                // Read every worksheet. Supports both Result Forge backups (22 columns)
+                // and school student lists (S.No, Class, Name, PEN, Father, Mother).
+                const importedData = [];
+                const seenStudents = new Set();
+                const clean = value => String(value ?? '').trim();
+                const normal = value => clean(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+                const isBlankRow = row => !row || !row.some(value => clean(value) !== '');
+
+                workbook.SheetNames.forEach((sheetName, sheetIndex) => {
+                    const sheet = workbook.Sheets[sheetName];
+                    const rows = XLSX.utils.sheet_to_json(sheet, {
+                        header: 1, defval: '', raw: false, blankrows: false
+                    });
+                    if (!rows || !rows.length) return;
+
+                    // Locate a header row even when a title/blank rows appear above it.
+                    const headerIndex = rows.findIndex(row => {
+                        const headers = row.map(normal);
+                        return headers.some(h => h === 'class' || h === 'classsection') &&
+                            headers.some(h => h === 'name' || h === 'studentname') &&
+                            headers.some(h => h.includes('father'));
+                    });
+                    const headers = headerIndex >= 0 ? rows[headerIndex].map(normal) : [];
+                    const findCol = (...names) => headers.findIndex(h => names.includes(h));
+                    const classCol = findCol('class', 'classsection', 'classsectionname');
+                    const nameCol = findCol('name', 'studentname', 'nameofstudent');
+                    const penCol = findCol('studentpen', 'pen', 'pennumber', 'studentid');
+                    const fatherCol = findCol('fathername', 'fathersname', 'father');
+                    const motherCol = findCol('mothername', 'mothersname', 'mother');
+
+                    // Standard Result Forge backup has ID, Class, Student Name, Father's Name...
+                    const backupHeader = headers.length >= 7 &&
+                        headers[0] === 'id' &&
+                        headers.some(h => h === 'studentname') &&
+                        headers.some(h => h === 'classsection' || h === 'class');
+                    if (backupHeader) {
+                        rows.slice(headerIndex + 1).forEach((row, index) => {
+                            if (isBlankRow(row) || row.length < 7) return;
+                            const student = {
+                                id: clean(row[0]) || ('import_' + Date.now() + '_' + sheetIndex + '_' + index),
+                                classSection: clean(row[1]),
+                                studentName: clean(row[2]),
+                                fatherName: clean(row[3]),
+                                motherName: clean(row[4]),
+                                address: clean(row[5]),
+                                dob: clean(row[6]),
+                                examName: clean(row[7]),
+                                sessionYear: clean(row[8]) || null,
+                                termName: clean(row[9]) || null,
+                                minMarksVal: clean(row[10]) || null,
+                                subjectsData: clean(row[11]),
+                                grandTotal: clean(row[12]) || null,
+                                maxTotalMarks: clean(row[13]),
+                                percentage: clean(row[14]),
+                                overallGrade: clean(row[15]),
+                                cgpa: clean(row[16]),
+                                resultStatus: clean(row[17]),
+                                autoRemark: clean(row[18]),
+                                reopenDate: clean(row[19]) || null,
+                                coScholasticData: clean(row[20]) || null,
+                                panId: clean(row[21]).toUpperCase()
+                            };
+                            addImportedStudent(student);
+                        });
+                        return;
+                    }
+
+                    // School list: headers may be on row 3 after a title.
+                    // Other class-wise sheets may have no header and use A:F directly.
+                    const dataStart = headerIndex >= 0 ? headerIndex + 1 :
+                        (sheetIndex === 0 ? 0 : 0);
+                    rows.slice(dataStart).forEach((row, index) => {
+                        if (isBlankRow(row)) return;
+                        let cls, name, pen, father, mother;
+                        if (headerIndex >= 0 && classCol >= 0 && nameCol >= 0) {
+                            cls = clean(row[classCol]);
+                            name = clean(row[nameCol]);
+                            pen = penCol >= 0 ? clean(row[penCol]) : '';
+                            father = fatherCol >= 0 ? clean(row[fatherCol]) : '';
+                            mother = motherCol >= 0 ? clean(row[motherCol]) : '';
+                        } else {
+                            // Skip title/header-like rows; accept only rows with class + name.
+                            if (normal(row[1]) === 'class' || normal(row[2]) === 'name') return;
+                            cls = clean(row[1]);
+                            name = clean(row[2]);
+                            pen = clean(row[3]);
+                            father = clean(row[4]);
+                            mother = clean(row[5]);
+                        }
+                        if (!cls || !name || /^(class|total|grand total)$/i.test(cls) ||
+                            /^(name|student name|list of all students)/i.test(name)) return;
+                        addImportedStudent({
+                            id: 'import_' + (pen || (Date.now() + '_' + sheetIndex + '_' + index)),
+                            classSection: cls,
+                            studentName: name,
+                            studentPen: pen,
+                            fatherName: father,
+                            motherName: mother,
+                            address: '',
+                            dob: ''
+                        });
+                    });
                 });
 
-                if (!rows || rows.length < 2) {
-                    alert("The selected file appears to be empty or invalid. Please check that it contains a header row and student records.");
-                    return;
+                function addImportedStudent(student) {
+                    if (!student.classSection || !student.studentName) return;
+                    const penKey = clean(student.studentPen);
+                    const identity = penKey
+                        ? 'pen:' + penKey
+                        : 'name:' + normal(student.classSection) + ':' + normal(student.studentName);
+                    if (seenStudents.has(identity)) return;
+                    seenStudents.add(identity);
+                    importedData.push(student);
                 }
 
-                // Keep the existing 21-column backup format:
-                // ID, Class, Student, Father, Mother, Address, DOB, Exam,
-                // Session, Term, Min Marks, Subject Marks, Total, Max Marks,
-                // Percentage, Grade, CGPA, Result Status, Remarks, Reopen Date,
-                // Co-Scholastic.
-                const importedData = rows.slice(1)
-                    .filter(row => Array.isArray(row) && row.some(value => String(value ?? '').trim() !== ''))
-                    .filter(row => row.length >= 7)
-                    .map((row, index) => ({
-                        id: String(row[0] || (Date.now().toString() + index)),
-                        classSection: String(row[1] ?? ''),
-                        studentName: String(row[2] ?? ''),
-                        fatherName: String(row[3] ?? ''),
-                        motherName: String(row[4] ?? ''),
-                        address: String(row[5] ?? ''),
-                        dob: String(row[6] ?? ''),
-                        examName: String(row[7] ?? ''),
-                        sessionYear: row[8] === '' || row[8] == null ? null : String(row[8]),
-                        termName: row[9] === '' || row[9] == null ? null : String(row[9]),
-                        minMarksVal: row[10] === '' || row[10] == null ? null : String(row[10]),
-                        subjectsData: String(row[11] ?? ''),
-                        grandTotal: row[12] === '' || row[12] == null ? null : String(row[12]),
-                        maxTotalMarks: String(row[13] ?? ''),
-                        percentage: String(row[14] ?? ''),
-                        overallGrade: String(row[15] ?? ''),
-                        cgpa: String(row[16] ?? ''),
-                        resultStatus: String(row[17] ?? ''),
-                        autoRemark: String(row[18] ?? ''),
-                        reopenDate: row[19] === '' || row[19] == null ? null : String(row[19]),
-                        coScholasticData: row[20] === '' || row[20] == null ? null : String(row[20]),
-                        panId: row[21] === '' || row[21] == null ? '' : String(row[21]).trim().toUpperCase()
-                    }));
-
                 if (importedData.length === 0) {
-                    alert("Could not read valid student records. Please check the 21-column backup format.");
+                    alert("No student records found. Please check that the Excel contains Class, Name, PEN, Father Name and Mother Name columns.");
                     return;
                 }
 
