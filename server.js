@@ -1057,16 +1057,43 @@ app.post('/api/students', requireAuth, async (req, res) => {
         // Delete existing students for this user
         await client.query(`DELETE FROM students WHERE user_email = $1`, [user_email]);
         
-        // Insert all students
-        for (const s of students) {
-            const { id, user_email: ue, studentName, classSection, fatherName, motherName, address, dob, subjects, ...resultData } = s;
+        // Prepare all student rows and insert them in one PostgreSQL round-trip.
+        // This is substantially faster than awaiting one INSERT per student.
+        const rows = students.map(s => {
+            const {
+                id, user_email: ignoredEmail, studentName, classSection,
+                fatherName, motherName, address, dob, subjects, ...resultData
+            } = s;
+            return {
+                id: String(id || crypto.randomUUID()),
+                studentName: studentName || '',
+                classSection: classSection || '',
+                fatherName: fatherName || '',
+                motherName: motherName || '',
+                address: address || '',
+                dob: dob || '',
+                subjects: JSON.stringify(subjects || []),
+                resultData: JSON.stringify(resultData)
+            };
+        });
+
+        if (rows.length) {
             await client.query(
-                `INSERT INTO students (id, user_email, "studentName", "classSection", "fatherName", "motherName", address, dob, subjects, "resultData") 
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-                [s.id, user_email, s.studentName, s.classSection, s.fatherName, s.motherName, s.address, s.dob, JSON.stringify(s.subjects || []), JSON.stringify(resultData)]
+                `INSERT INTO students (
+                    id, user_email, "studentName", "classSection", "fatherName",
+                    "motherName", address, dob, subjects, "resultData"
+                )
+                SELECT
+                    x.id, $2, x."studentName", x."classSection", x."fatherName",
+                    x."motherName", x.address, x.dob, x.subjects, x."resultData"
+                FROM jsonb_to_recordset($1::jsonb) AS x(
+                    id text, "studentName" text, "classSection" text,
+                    "fatherName" text, "motherName" text, address text,
+                    dob text, subjects text, "resultData" text
+                )`,
+                [JSON.stringify(rows), user_email]
             );
         }
-        
         await client.query('COMMIT');
         res.json({ message: "Database saved successfully" });
     } catch(err) {
