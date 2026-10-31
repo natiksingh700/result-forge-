@@ -924,10 +924,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 if(confirm("Are you sure you want to delete this student? This cannot be undone.")) {
-                    let db = getDb();
-                    db = db.filter(s => s.id !== id);
-                    await saveDb(db);
-                    renderDbTable();
+                    try {
+                        const response = await fetch(`/api/students/${encodeURIComponent(id)}?email=${encodeURIComponent(currentUser)}`, {
+                            method: 'DELETE'
+                        });
+                        const result = await response.json().catch(() => ({}));
+                        if (!response.ok) {
+                            alert('⚠️ ' + (result.error || 'Student could not be deleted. Please try again.'));
+                            return;
+                        }
+
+                        currentDbState = currentDbState.filter(student => String(student.id) !== String(id));
+                        renderDbTable();
+
+                        const classSelect = document.getElementById('selectClassToGenerate');
+                        if (classSelect && classSelect.value) {
+                            classSelect.dispatchEvent(new Event('change'));
+                        }
+                        alert('✅ Student deleted successfully!');
+                    } catch (error) {
+                        console.error('Student delete failed:', error);
+                        alert('⚠️ Could not connect to the server. Student was not deleted. Please try again.');
+                    }
                 }
             }
         });
