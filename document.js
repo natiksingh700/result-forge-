@@ -476,6 +476,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadLogo = document.getElementById('uploadLogo');
     const primaryLogo = document.querySelector('#resultCard .school-logo');
 
+    // Always apply the saved account logo to the actual card being displayed/printed.
+    // Cards are cloned for bulk results, so each clone must receive the saved logo too.
+    function applySchoolLogoToCard(cardNode) {
+        if (!cardNode) return;
+        const activeUser = sessionStorage.getItem('currentUser');
+        if (!activeUser) return;
+        const savedLogo = localStorage.getItem(`logoImg_${activeUser}`);
+        if (!savedLogo) return;
+        const logo = cardNode.querySelector('.school-logo');
+        if (!logo) return;
+        logo.src = savedLogo;
+        logo.style.display = 'block';
+        logo.style.visibility = 'visible';
+        logo.style.opacity = '1';
+    }
+
     let lX = 0, lY = 0, lScale = 1;
     let isDragging = false, startMouseX = 0, startMouseY = 0, startX = 0, startY = 0;
 
@@ -652,6 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     img.style.visibility = 'visible';
                 });
             }
+            applySchoolLogoToCard(document.getElementById('resultCard'));
             const savedSettings = localStorage.getItem(`logoSettings_${currentUser}`);
             if (savedSettings) {
                 const s = JSON.parse(savedSettings);
@@ -2156,6 +2173,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        applySchoolLogoToCard(resultCard);
         resultCard.classList.remove('hidden');
         
         if (printBtn) printBtn.disabled = false;
@@ -2335,6 +2353,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const searchNameBulk = document.getElementById('searchNameBulk');
         const searchParentBulk = document.getElementById('searchParentBulk');
         function populateCardData(cardNode, student) {
+        applySchoolLogoToCard(cardNode);
         const q = (sel) => cardNode.querySelector(sel);
         
         if(q('#dispStudentName')) q('#dispStudentName').textContent = student.studentName || '';
