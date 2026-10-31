@@ -628,7 +628,6 @@ app.post('/api/settings', requireAuth, async (req, res) => {
     const email = req.user.email;
     const { 
         logo_img, 
-        logo_img, 
         watermark_img, 
         logo_settings, 
         school_name, 
