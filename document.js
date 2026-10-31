@@ -136,8 +136,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await apiFetch('/api/settings');
             const data = await res.json();
             if (data && data.email) {
+                // Keep the locally saved logo if the server has no logo yet.
+                // This prevents an empty settings response from erasing a logo already uploaded on this device.
                 if (data.logo_img) localStorage.setItem(`logoImg_${email}`, data.logo_img);
-                else localStorage.removeItem(`logoImg_${email}`);
 
                 if (data.logo_settings) localStorage.setItem(`logoSettings_${email}`, data.logo_settings);
                 else localStorage.removeItem(`logoSettings_${email}`);
@@ -577,8 +578,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         img.style.display = 'block';
                         img.style.visibility = 'visible';
                     });
-                    localStorage.setItem(`logoImg_${sessionStorage.getItem('currentUser')}`, imageData);
-                    triggerServerSave();
+                    const activeUser = sessionStorage.getItem('currentUser');
+                    if (activeUser) {
+                        localStorage.setItem(`logoImg_${activeUser}`, imageData);
+                        // Save immediately so the logo survives refresh, logout and another device.
+                        saveSettingsToServer();
+                    }
                 };
                 testImage.onerror = () => {
                     alert('Logo image open nahi ho paayi. Please transparent PNG try karo.');
@@ -640,9 +645,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function applySavedSettingsToUI(currentUser) {
         if (currentUser) {
             const savedImg = localStorage.getItem(`logoImg_${currentUser}`);
-            if (savedImg && primaryLogo) {
-                primaryLogo.src = savedImg;
-                primaryLogo.style.display = 'block';
+            if (savedImg) {
+                document.querySelectorAll('.school-logo').forEach(img => {
+                    img.src = savedImg;
+                    img.style.display = 'block';
+                    img.style.visibility = 'visible';
+                });
             }
             const savedSettings = localStorage.getItem(`logoSettings_${currentUser}`);
             if (savedSettings) {
