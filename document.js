@@ -1337,7 +1337,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 coScholasticData: clean(row[headers.indexOf('coscholasticdata')] ?? row[20]) || null,
                                 panId: clean(row[headers.findIndex(h => ['panid','panpenid','studentpen','pen'].includes(h))] ?? row[21]).toUpperCase(),
                                 studentPen: clean(row[headers.findIndex(h => ['studentpen','panpenid','pen'].includes(h))] ?? row[21]),
-                                extraDetails: buildExtraDetails(row, new Set(headers.map((h, i) => ['id','classsection','class','studentname','fathername','mothername','address','dob','examname','sessionyear','termname','minmarksval','subjectsdata','grandtotal','maxtotalmarks','percentage','overallgrade','cgpa','resultstatus','autorem​ark','reopendate','coscholasticdata','panid','studentpen','pen'].includes(h) ? i : -1).filter(i => i >= 0)))
+                                extraDetails: buildExtraDetails(row, new Set(headers.map((h, i) => ['id','classsection','class','studentname','fathername','mothername','address','dob','examname','sessionyear','termname','minmarksval','subjectsdata','grandtotal','maxtotalmarks','percentage','overallgrade','cgpa','resultstatus','autorem​ark','reopendate','coscholasticdata','panid','panpenid','studentpen','pen'].includes(h) ? i : -1).filter(i => i >= 0)))
                             };
                             addImportedStudent(student);
                         });
