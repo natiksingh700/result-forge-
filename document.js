@@ -535,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = e.target.files && e.target.files[0];
             if (!file) return;
             if (!file.type.startsWith('image/')) {
-                alert('Please choose an image file (PNG, JPG, or WEBP).');
+                alert('Please choose a transparent PNG logo.');
                 uploadLogo.value = '';
                 return;
             }
@@ -543,7 +543,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const reader = new FileReader();
             reader.onload = function(event) {
                 const imageData = event.target.result;
-                const applyLogo = () => {
+                const testImage = new Image();
+                testImage.onload = () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                        const scale = Math.min(160 / testImage.width, 160 / testImage.height, 1);
+                        canvas.width = Math.max(1, Math.round(testImage.width * scale));
+                        canvas.height = Math.max(1, Math.round(testImage.height * scale));
+                        ctx.drawImage(testImage, 0, 0, canvas.width, canvas.height);
+                        const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                        let hasTransparentPixel = false;
+                        for (let i = 3; i < pixels.length; i += 4) {
+                            if (pixels[i] < 250) {
+                                hasTransparentPixel = true;
+                                break;
+                            }
+                        }
+                        if (!hasTransparentPixel) {
+                            alert('Logo background transparent nahi hai. Please transparent PNG upload karo.');
+                            uploadLogo.value = '';
+                            return;
+                        }
+                    } catch (err) {
+                        console.warn('Could not verify logo transparency:', err);
+                        alert('Logo transparency verify nahi ho paayi. Please transparent PNG upload karo.');
+                        uploadLogo.value = '';
+                        return;
+                    }
+
                     document.querySelectorAll('.school-logo').forEach(img => {
                         img.src = imageData;
                         img.style.display = 'block';
@@ -552,17 +580,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem(`logoImg_${sessionStorage.getItem('currentUser')}`, imageData);
                     triggerServerSave();
                 };
-                // Accept regular JPG/PNG logos too; transparency is optional.
-                const testImage = new Image();
-                testImage.onload = applyLogo;
                 testImage.onerror = () => {
-                    alert('Logo image could not be opened. Please try another image.');
+                    alert('Logo image open nahi ho paayi. Please transparent PNG try karo.');
                     uploadLogo.value = '';
                 };
                 testImage.src = imageData;
             };
             reader.onerror = () => {
-                alert('Could not read the selected logo. Please try again.');
+                alert('Logo file read nahi ho paayi. Dobara try karo.');
                 uploadLogo.value = '';
             };
             reader.readAsDataURL(file);
