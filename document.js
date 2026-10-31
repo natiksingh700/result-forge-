@@ -1283,8 +1283,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const headerIndex = rows.findIndex(row => {
                         const headers = row.map(normal);
                         return headers.some(h => h === 'class' || h === 'classsection') &&
-                            headers.some(h => h === 'name' || h === 'studentname') &&
-                            headers.some(h => h.includes('father'));
+                            headers.some(h => ['name', 'studentname', 'nameofstudent', 'studentsname', 'fullname'].includes(h));
                     });
                     const headers = headerIndex >= 0 ? rows[headerIndex].map(normal) : [];
                     const headerLabels = headerIndex >= 0 ? rows[headerIndex].map(clean) : [];
@@ -1299,10 +1298,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         return extra;
                     };
                     const findCol = (...names) => headers.findIndex(h => names.includes(h));
-                    const classCol = findCol('class', 'classsection', 'classsectionname');
-                    const nameCol = findCol('name', 'studentname', 'nameofstudent');
-                    const penCol = findCol('studentpen', 'pen', 'pennumber', 'studentid');
-                    const fatherCol = findCol('fathername', 'fathersname', 'father');
+                    const classCol = findCol('class', 'classsection', 'classsectionname', 'standard', 'grade');
+                    const nameCol = findCol('name', 'studentname', 'nameofstudent', 'studentsname', 'fullname');
+                    const penCol = findCol('studentpen', 'pen', 'pennumber', 'studentid', 'penid', 'permanenteducationnumber');
+                    const fatherCol = findCol('fathername', 'fathersname', 'father', 'guardianname');
                     const motherCol = findCol('mothername', 'mothersname', 'mother');
 
                     // Standard Result Forge backup has ID, Class, Student Name, Father's Name...
@@ -1443,7 +1442,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 studentPen: importedPen || existing.studentPen || '',
                                 panId: importedPen || existing.panId || '',
                                 fatherName: existing.fatherName || imported.fatherName || '',
-                                motherName: existing.motherName || imported.motherName || ''
+                                motherName: existing.motherName || imported.motherName || '',
+                                extraDetails: { ...(existing.extraDetails || {}), ...(imported.extraDetails || {}) }
                             };
                         } else {
                             merged.push(imported);
@@ -2326,6 +2326,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(q('#dispClassSection')) q('#dispClassSection').textContent = student.classSection || '';
         if(q('#dispDob')) q('#dispDob').textContent = student.dob || '';
         if(q('#dispPanId')) q('#dispPanId').textContent = (student.panId || student.studentPen || '').toUpperCase();
+        renderExtraDetails(student.extraDetails || {});
         
         if(q('#dispTermName')) q('#dispTermName').textContent = (student.termName || '').toUpperCase();
         if(q('#dispExamName')) q('#dispExamName').textContent = student.examName || '';
