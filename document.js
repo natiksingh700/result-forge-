@@ -1287,6 +1287,17 @@ document.addEventListener('DOMContentLoaded', () => {
                             headers.some(h => h.includes('father'));
                     });
                     const headers = headerIndex >= 0 ? rows[headerIndex].map(normal) : [];
+                    const headerLabels = headerIndex >= 0 ? rows[headerIndex].map(clean) : [];
+                    const buildExtraDetails = (row, excluded = new Set(), labels = headerLabels) => {
+                        const extra = {};
+                        row.forEach((value, colIndex) => {
+                            const valueText = clean(value);
+                            if (excluded.has(colIndex) || !valueText) return;
+                            const label = clean(labels[colIndex]) || ('Column ' + String.fromCharCode(65 + colIndex));
+                            extra[label] = valueText;
+                        });
+                        return extra;
+                    };
                     const findCol = (...names) => headers.findIndex(h => names.includes(h));
                     const classCol = findCol('class', 'classsection', 'classsectionname');
                     const nameCol = findCol('name', 'studentname', 'nameofstudent');
@@ -1324,7 +1335,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 autoRemark: clean(row[18]),
                                 reopenDate: clean(row[19]) || null,
                                 coScholasticData: clean(row[20]) || null,
-                                panId: clean(row[21]).toUpperCase()
+                                panId: clean(row[21]).toUpperCase(),
+                                extraDetails: buildExtraDetails(row, new Set(Array.from({ length: 22 }, (_, i) => i)))
                             };
                             addImportedStudent(student);
                         });
@@ -1364,7 +1376,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             fatherName: father,
                             motherName: mother,
                             address: '',
-                            dob: ''
+                            dob: '',
+                            extraDetails: buildExtraDetails(
+                                row,
+                                new Set([classCol, nameCol, penCol, fatherCol, motherCol, findCol('sno', 'serialno', 'srno', 'serialnumber')].filter(index => index >= 0)),
+                                headerIndex >= 0 ? headerLabels : row.map((_, colIndex) => 'Column ' + String.fromCharCode(65 + colIndex))
+                            )
                         });
                     });
                 });
