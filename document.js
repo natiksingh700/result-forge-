@@ -1398,7 +1398,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     await saveDb(importedData);
                 } else {
                     // Merge safely: keep existing records and skip matching PEN or class/name duplicates.
-                    const merged = existingDb.slice();
+                    const merged = existingDb.map(student => ({ ...student, classSection: normalizeImportedClass(student.classSection) }));
                     const existingKeys = new Set();
                     merged.forEach(student => {
                         const pen = clean(student.studentPen);
