@@ -1495,29 +1495,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Render every additional Excel column on the result card without dropping source fields.
+    // Keep imported school metadata in the database, but never print it on student result cards.
+    // This excludes fields such as Section, Gender, Aadhaar, APAAR and Entry Status for every student.
     function renderExtraDetails(details) {
         const table = document.getElementById('extraDetailsTable');
         const body = document.getElementById('dispExtraDetails');
-        if (!table || !body) return;
-        body.innerHTML = '';
-        const entries = details && typeof details === 'object' && !Array.isArray(details)
-            ? Object.entries(details).filter(([key, value]) => String(key).trim() && String(value ?? '').trim())
-            : [];
-        if (!entries.length) {
-            table.style.display = 'none';
-            return;
-        }
-        entries.forEach(([key, value]) => {
-            const row = document.createElement('tr');
-            const label = document.createElement('td');
-            const content = document.createElement('td');
-            label.className = 'extra-label';
-            label.textContent = key;
-            content.textContent = String(value);
-            row.append(label, content);
-            body.appendChild(row);
-        });
-        table.style.display = 'table';
+        if (body) body.innerHTML = '';
+        if (table) table.style.display = 'none';
     }
 
     // Generate Results Logic
