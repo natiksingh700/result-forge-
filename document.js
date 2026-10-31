@@ -918,9 +918,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 studentName: document.getElementById('dbStudentName').value,
                 fatherName: document.getElementById('dbFatherName').value,
                 motherName: document.getElementById('dbMotherName').value,
-                address: document.getElementById('dbAddress').value,
+                address: '',
                 dob: document.getElementById('dbDob').value,
-                panId: (document.getElementById('dbPanId').value || '').trim().toUpperCase()
+                panId: (document.getElementById('dbPanId').value || '').trim().toUpperCase(),
+                studentPen: (document.getElementById('dbPanId').value || '').trim()
             };
             const db = getDb();
             db.push(student);
@@ -1445,6 +1446,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Render every additional Excel column on the result card without dropping source fields.
+    function renderExtraDetails(details) {
+        const table = document.getElementById('extraDetailsTable');
+        const body = document.getElementById('dispExtraDetails');
+        if (!table || !body) return;
+        body.innerHTML = '';
+        const entries = details && typeof details === 'object' && !Array.isArray(details)
+            ? Object.entries(details).filter(([key, value]) => String(key).trim() && String(value ?? '').trim())
+            : [];
+        if (!entries.length) {
+            table.style.display = 'none';
+            return;
+        }
+        entries.forEach(([key, value]) => {
+            const row = document.createElement('tr');
+            const label = document.createElement('td');
+            const content = document.createElement('td');
+            label.className = 'extra-label';
+            label.textContent = key;
+            content.textContent = String(value);
+            row.append(label, content);
+            body.appendChild(row);
+        });
+        table.style.display = 'table';
+    }
+
     // Generate Results Logic
     let currentClassList = [];
     let currentStudentIndex = 0;
@@ -1605,7 +1632,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('fatherName').value = student.fatherName || '';
         document.getElementById('motherName').value = student.motherName || '';
         document.getElementById('classSection').value = student.classSection || '';
-        document.getElementById('address').value = student.address || '';
         document.getElementById('dob').value = student.dob || '';
         const panInput = document.getElementById('panId');
         if (panInput) panInput.value = student.panId || student.studentPen || '';
@@ -1952,10 +1978,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dispFatherName').textContent = document.getElementById('fatherName').value;
         document.getElementById('dispMotherName').textContent = document.getElementById('motherName').value;
         document.getElementById('dispClassSection').textContent = document.getElementById('classSection').value;
-        document.getElementById('dispAddress').textContent = document.getElementById('address').value;
         document.getElementById('dispDob').textContent = document.getElementById('dob').value;
         const panDisplay = document.getElementById('dispPanId');
         if (panDisplay) panDisplay.textContent = (document.getElementById('panId')?.value || '').toUpperCase();
+        renderExtraDetails(currentClassList[currentStudentIndex]?.extraDetails || {});
         
         // Assign term info (Remarks will be auto-calculated)
         document.getElementById('dispReopen').textContent = document.getElementById('reopenDate').value;
@@ -2281,9 +2307,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if(q('#dispFatherName')) q('#dispFatherName').textContent = student.fatherName || '';
         if(q('#dispMotherName')) q('#dispMotherName').textContent = student.motherName || '';
         if(q('#dispClassSection')) q('#dispClassSection').textContent = student.classSection || '';
-        if(q('#dispAddress')) q('#dispAddress').textContent = student.address || '';
         if(q('#dispDob')) q('#dispDob').textContent = student.dob || '';
-        if(q('#dispPanId')) q('#dispPanId').textContent = (student.panId || '').toUpperCase();
+        if(q('#dispPanId')) q('#dispPanId').textContent = (student.panId || student.studentPen || '').toUpperCase();
         
         if(q('#dispTermName')) q('#dispTermName').textContent = (student.termName || '').toUpperCase();
         if(q('#dispExamName')) q('#dispExamName').textContent = student.examName || '';
