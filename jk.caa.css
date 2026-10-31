@@ -1209,12 +1209,51 @@ td:first-child {
     width: 180px;
     text-align: center;
     position: relative;
+    min-height: 42px;
+}
+
+.principal-sig-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.principal-signature {
+    display: block;
+    width: 92px;
+    height: 48px;
+    object-fit: contain;
+    margin: -22px auto -3px;
+    position: relative;
+    z-index: 3;
+}
+
+.extra-details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 12px;
+    font-size: 10px;
+    position: relative;
+    z-index: 2;
+}
+
+.extra-details-table td {
+    border: 1px solid #777;
+    padding: 4px 6px;
+    overflow-wrap: anywhere;
+}
+
+.extra-details-table .extra-label {
+    width: 28%;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
 @media print {
     @page {
         size: A4;
-        margin: 5mm;
+        margin: 4mm;
     }
 
     body {
@@ -1268,20 +1307,32 @@ td:first-child {
     }
 
     .result-card {
-        border: 8px solid #ea580c !important;
-        outline: 2px solid #9a3412 !important;
-        outline-offset: -10px !important;
+        border: 5px solid #ea580c !important;
+        outline: 1px solid #9a3412 !important;
+        outline-offset: -7px !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-        box-shadow: none;
-        margin: 0 !important;
-        width: 100% !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 auto !important;
+        width: 202mm !important;
+        max-width: 202mm !important;
+        min-height: 0 !important;
         height: auto !important;
-        padding: 25px;
+        padding: 9mm 8mm !important;
         page-break-after: auto !important;
+        break-inside: avoid-page;
         overflow: visible !important;
-        /* Force fit */
-        box-sizing: border-box;
+        box-sizing: border-box !important;
+    }
+
+    .principal-signature {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .extra-details-table {
+        break-inside: avoid;
     }
 
     #bulkPrintContainer {
