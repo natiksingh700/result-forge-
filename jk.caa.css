@@ -1221,10 +1221,10 @@ td:first-child {
 
 .principal-signature {
     display: block;
-    width: 92px;
-    height: 48px;
+    width: 108px;
+    height: 66px;
     object-fit: contain;
-    margin: -22px auto -3px;
+    margin: -32px auto -8px;
     position: relative;
     z-index: 3;
 }
@@ -1322,6 +1322,7 @@ td:first-child {
         padding: 9mm 8mm !important;
         page-break-after: auto !important;
         break-inside: avoid-page;
+        page-break-inside: avoid;
         overflow: visible !important;
         box-sizing: border-box !important;
     }
