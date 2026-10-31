@@ -1177,67 +1177,119 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = e.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = async function(event) {
-                const csvText = event.target.result;
-                const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
-                if(lines.length < 2) {
-                    alert("The Excel/CSV file appears to be empty or invalid. Please check the file.");
+            try {
+                const extension = file.name.split('.').pop().toLowerCase();
+                if (!['csv', 'xlsx', 'xls'].includes(extension)) {
+                    alert("Unsupported file type. Please select a CSV, XLSX, or XLS file.");
                     return;
                 }
-                
-                let importedData = [];
-                for (let i = 1; i < lines.length; i++) {
-                    const row = parseCSVRow(lines[i]);
-                    if(row.length >= 7) {
-                        importedData.push({
-                            id: row[0] || Date.now().toString() + i,
-                            classSection: row[1] || '',
-                            studentName: row[2] || '',
-                            fatherName: row[3] || '',
-                            motherName: row[4] || '',
-                            address: row[5] || '',
-                            dob: row[6] || '',
-                            examName: row[7] || '',
-                            sessionYear: row[8] || null,
-                            termName: row[9] || null,
-                            minMarksVal: row[10] || null,
-                            subjectsData: row[11] || '',
-                            grandTotal: row[12] || null,
-                            maxTotalMarks: row[13] || '',
-                            percentage: row[14] || '',
-                            overallGrade: row[15] || '',
-                            cgpa: row[16] || '',
-                            resultStatus: row[17] || '',
-                            autoRemark: row[18] || '',
-                            reopenDate: row[19] || null,
-                            coScholasticData: row[20] || null
-                        });
+
+                const reader = new FileReader();
+                const workbook = await new Promise((resolve, reject) => {
+                    reader.onload = (event) => {
+                        try {
+                            const readOptions = extension === 'csv'
+                                ? { type: 'string' }
+                                : { type: 'array' };
+                            resolve(XLSX.read(event.target.result, readOptions));
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    reader.onerror = () => reject(reader.error || new Error("Unable to read the selected file."));
+                    if (extension === 'csv') reader.readAsText(file);
+                    else reader.readAsArrayBuffer(file);
+                });
+
+                if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                    throw new Error("The selected file does not contain a readable worksheet.");
+                }
+
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(firstSheet, {
+                    header: 1,
+                    defval: '',
+                    raw: false,
+                    blankrows: false
+                });
+
+                if (!rows || rows.length < 2) {
+                    alert("The selected file appears to be empty or invalid. Please check that it contains a header row and student records.");
+                    return;
+                }
+
+                // Keep the existing 21-column backup format:
+                // ID, Class, Student, Father, Mother, Address, DOB, Exam,
+                // Session, Term, Min Marks, Subject Marks, Total, Max Marks,
+                // Percentage, Grade, CGPA, Result Status, Remarks, Reopen Date,
+                // Co-Scholastic.
+                const importedData = rows.slice(1)
+                    .filter(row => Array.isArray(row) && row.some(value => String(value ?? '').trim() !== ''))
+                    .filter(row => row.length >= 7)
+                    .map((row, index) => ({
+                        id: String(row[0] || (Date.now().toString() + index)),
+                        classSection: String(row[1] ?? ''),
+                        studentName: String(row[2] ?? ''),
+                        fatherName: String(row[3] ?? ''),
+                        motherName: String(row[4] ?? ''),
+                        address: String(row[5] ?? ''),
+                        dob: String(row[6] ?? ''),
+                        examName: String(row[7] ?? ''),
+                        sessionYear: row[8] === '' || row[8] == null ? null : String(row[8]),
+                        termName: row[9] === '' || row[9] == null ? null : String(row[9]),
+                        minMarksVal: row[10] === '' || row[10] == null ? null : String(row[10]),
+                        subjectsData: String(row[11] ?? ''),
+                        grandTotal: row[12] === '' || row[12] == null ? null : String(row[12]),
+                        maxTotalMarks: String(row[13] ?? ''),
+                        percentage: String(row[14] ?? ''),
+                        overallGrade: String(row[15] ?? ''),
+                        cgpa: String(row[16] ?? ''),
+                        resultStatus: String(row[17] ?? ''),
+                        autoRemark: String(row[18] ?? ''),
+                        reopenDate: row[19] === '' || row[19] == null ? null : String(row[19]),
+                        coScholasticData: row[20] === '' || row[20] == null ? null : String(row[20])
+                    }));
+
+                if (importedData.length === 0) {
+                    alert("Could not read valid student records. Please check the 21-column backup format.");
+                    return;
+                }
+
+                const currentUser = sessionStorage.getItem('currentUser');
+                const existingDb = getDb();
+                const replaceDatabase = confirm(
+                    "Do you want to REPLACE the entire database with this file?\\n\\nClick OK to Replace, or Cancel to Merge instead."
+                );
+
+                // Preserve the demo account's 10-student maximum for both
+                // replacement and merge imports.
+                if (currentUser === 'demo@school.com') {
+                    const allowedCount = replaceDatabase ? 10 : Math.max(0, 10 - existingDb.length);
+                    if (allowedCount === 0) {
+                        alert("🚫 Demo account allows a maximum of 10 students. There is no room for additional imported students.");
+                        return;
+                    }
+                    if (importedData.length > allowedCount) {
+                        alert(`🚫 Demo account allows a maximum of 10 students only!\\n\\nOnly ${allowedCount} of the ${importedData.length} imported students will be added.`);
+                        importedData.splice(allowedCount);
                     }
                 }
 
-                if (importedData.length > 0) {
-                    // Demo account import limit check
-                    const currentUser = sessionStorage.getItem('currentUser');
-                    if (currentUser === 'demo@school.com' && importedData.length > 10) {
-                        alert(`🚫 Demo account allows a maximum of 10 students only!\n\nYour file has ${importedData.length} students. Only the first 10 will be imported.`);
-                        importedData = importedData.slice(0, 10);
-                    }
-                    const existingDb = getDb();
-                    if (confirm("Do you want to REPLACE the entire database with this file?\n\nClick OK to Replace, or Cancel to Merge instead.")) {
-                        await saveDb(importedData);
-                    } else {
-                        const merged = existingDb.concat(importedData);
-                        await saveDb(merged);
-                    }
-                    renderDbTable();
-                    alert("Data imported successfully!");
+                if (replaceDatabase) {
+                    await saveDb(importedData);
                 } else {
-                    alert("Could not read valid data from this file. Please make sure it is a properly formatted CSV or Excel file.");
+                    const merged = existingDb.concat(importedData);
+                    await saveDb(merged);
                 }
-            };
-            reader.readAsText(file);
-            importDbFile.value = ''; // Reset file input
+
+                renderDbTable();
+                alert("Data imported successfully!");
+            } catch (error) {
+                console.error("Import Error:", error);
+                alert("The file could not be imported. Please verify that it is a valid CSV, XLSX, or XLS file and try again.");
+            } finally {
+                importDbFile.value = ''; // Allow selecting the same file again.
+            }
         });
     }
 
