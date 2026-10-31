@@ -1378,7 +1378,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             dob: '',
                             extraDetails: buildExtraDetails(
                                 row,
-                                new Set([classCol, nameCol, penCol, fatherCol, motherCol, findCol('sno', 'serialno', 'srno', 'serialnumber')].filter(index => index >= 0)),
+                                new Set(headerIndex >= 0
+                                    ? [classCol, nameCol, penCol, fatherCol, motherCol, findCol('sno', 'serialno', 'srno', 'serialnumber')].filter(index => index >= 0)
+                                    : [0, 1, 2, 3, 4, 5]),
                                 headerIndex >= 0 ? headerLabels : row.map((_, colIndex) => 'Column ' + String.fromCharCode(65 + colIndex))
                             )
                         });
