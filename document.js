@@ -532,49 +532,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (uploadLogo) {
         uploadLogo.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if(file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const tempImg = new Image();
-                    tempImg.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        // Scale down to max 100x100 for fast checking
-                        const scale = Math.min(100 / tempImg.width, 100 / tempImg.height, 1);
-                        canvas.width = Math.max(1, tempImg.width * scale);
-                        canvas.height = Math.max(1, tempImg.height * scale);
-                        ctx.drawImage(tempImg, 0, 0, canvas.width, canvas.height);
-                        
-                        try {
-                            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-                            let hasTransparency = false;
-                            for (let i = 3; i < imgData.length; i += 4) {
-                                if (imgData[i] < 250) { // Check if any pixel has significant transparency
-                                    hasTransparency = true;
-                                    break;
-                                }
-                            }
-                            if (!hasTransparency) {
-                                alert("WARNING: It looks like this logo has a solid background. Please upload a logo with the background removed (Transparent PNG), otherwise a white box will appear on your result cards!");
-                                uploadLogo.value = '';
-                                return;
-                            }
-                        } catch(err) {
-                            console.warn("Could not check transparency", err);
-                        }
-                        
-                        document.querySelectorAll('.school-logo').forEach(l => {
-                            l.src = event.target.result;
-                            l.style.display = 'block';
-                        });
-                        localStorage.setItem(`logoImg_${sessionStorage.getItem('currentUser')}`, event.target.result);
-                        triggerServerSave();
-                    };
-                    tempImg.src = event.target.result;
-                };
-                reader.readAsDataURL(file);
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                alert('Please choose an image file (PNG, JPG, or WEBP).');
+                uploadLogo.value = '';
+                return;
             }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imageData = event.target.result;
+                const applyLogo = () => {
+                    document.querySelectorAll('.school-logo').forEach(img => {
+                        img.src = imageData;
+                        img.style.display = 'block';
+                        img.style.visibility = 'visible';
+                    });
+                    localStorage.setItem(`logoImg_${sessionStorage.getItem('currentUser')}`, imageData);
+                    triggerServerSave();
+                };
+                // Accept regular JPG/PNG logos too; transparency is optional.
+                const testImage = new Image();
+                testImage.onload = applyLogo;
+                testImage.onerror = () => {
+                    alert('Logo image could not be opened. Please try another image.');
+                    uploadLogo.value = '';
+                };
+                testImage.src = imageData;
+            };
+            reader.onerror = () => {
+                alert('Could not read the selected logo. Please try again.');
+                uploadLogo.value = '';
+            };
+            reader.readAsDataURL(file);
         });
     }
 
