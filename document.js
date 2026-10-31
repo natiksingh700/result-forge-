@@ -1259,7 +1259,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Read every worksheet. Supports both Result Forge backups (22 columns)
                 // and school student lists (S.No, Class, Name, PEN, Father, Mother).
                 const importedData = [];
-                const seenStudents = new Set();
+                const seenStudents = new Map();
                 const clean = value => String(value ?? '').trim();
                 const normal = value => clean(value).toLowerCase().replace(/[^a-z0-9]/g, '');
                 const normalizeImportedClass = value => {
@@ -1391,8 +1391,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     const identity = penKey
                         ? 'pen:' + penKey
                         : 'name:' + normal(student.classSection) + ':' + normal(student.studentName);
-                    if (seenStudents.has(identity)) return;
-                    seenStudents.add(identity);
+                    if (seenStudents.has(identity)) {
+                        const existingIndex = seenStudents.get(identity);
+                        const existing = importedData[existingIndex];
+                        existing.studentPen = existing.studentPen || student.studentPen || '';
+                        existing.panId = existing.panId || student.panId || student.studentPen || '';
+                        existing.fatherName = existing.fatherName || student.fatherName || '';
+                        existing.motherName = existing.motherName || student.motherName || '';
+                        existing.extraDetails = { ...(existing.extraDetails || {}), ...(student.extraDetails || {}) };
+                        return;
+                    }
+                    seenStudents.set(identity, importedData.length);
                     importedData.push(student);
                 }
 
