@@ -1251,6 +1251,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const seenStudents = new Set();
                 const clean = value => String(value ?? '').trim();
                 const normal = value => clean(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+                const normalizeImportedClass = value => {
+                    const raw = clean(value).toUpperCase().replace(/\\s+/g, '');
+                    const romanClasses = {
+                        I: '1ST', II: '2ND', III: '3RD', IV: '4TH', V: '5TH',
+                        VI: '6TH', VII: '7TH', VIII: '8TH', IX: '9TH', X: '10TH'
+                    };
+                    return romanClasses[raw] || raw;
+                };
                 const isBlankRow = row => !row || !row.some(value => clean(value) !== '');
 
                 workbook.SheetNames.forEach((sheetName, sheetIndex) => {
