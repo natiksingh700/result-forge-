@@ -4,6 +4,7 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const path = require('path');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
@@ -403,11 +404,52 @@ const transporter = nodemailer.createTransport({
 });
 
 
+// Signed bearer tokens: API identity comes from the verified token, never a client-supplied email.
+const AUTH_TOKEN_SECRET = process.env.AUTH_TOKEN_SECRET || process.env.DATABASE_URL || crypto.randomBytes(32).toString('hex');
+const AUTH_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
+
+function createAuthToken(email) {
+    const payload = Buffer.from(JSON.stringify({
+        email,
+        exp: Math.floor(Date.now() / 1000) + AUTH_TOKEN_TTL_SECONDS
+    })).toString('base64url');
+    const signature = crypto.createHmac('sha256', AUTH_TOKEN_SECRET).update(payload).digest('base64url');
+    return payload + '.' + signature;
+}
+
+function requireAuth(req, res, next) {
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+    const parts = token.split('.');
+    if (parts.length !== 2) return res.status(401).json({ error: 'Session expired. Please log in again.' });
+
+    const expected = crypto.createHmac('sha256', AUTH_TOKEN_SECRET).update(parts[0]).digest();
+    let supplied;
+    try { supplied = Buffer.from(parts[1], 'base64url'); } catch (_) {
+        return res.status(401).json({ error: 'Invalid session. Please log in again.' });
+    }
+    if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) {
+        return res.status(401).json({ error: 'Invalid session. Please log in again.' });
+    }
+
+    try {
+        const payload = JSON.parse(Buffer.from(parts[0], 'base64url').toString('utf8'));
+        if (!payload.email || !payload.exp || payload.exp <= Math.floor(Date.now() / 1000)) {
+            return res.status(401).json({ error: 'Session expired. Please log in again.' });
+        }
+        req.user = { email: String(payload.email).toLowerCase() };
+        next();
+    } catch (_) {
+        return res.status(401).json({ error: 'Invalid session. Please log in again.' });
+    }
+}
+
 // ---------------- AUTHENTICATION ENDPOINTS ---------------- //
 
 app.post('/api/auth/signup', async (req, res) => {
     const { email, pass, inviteCode } = req.body;
-    if(!email || !pass) return res.status(400).json({ error: "Email and password required" });
+    if (!email || !pass || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return res.status(400).json({ error: "A valid email and password are required." });
+    if (pass.length < 8) return res.status(400).json({ error: "Password must be at least 8 characters long." });
     
     // Check invite code
     const requiredCode = process.env.SIGNUP_CODE;
@@ -441,7 +483,7 @@ app.post('/api/auth/login', async (req, res) => {
         
         const match = await bcrypt.compare(pass, user.password_hash);
         if (match) {
-            res.json({ message: "Login successful", email: user.email });
+            res.json({ message: "Login successful", email: user.email, token: createAuthToken(user.email) });
         } else {
             res.status(400).json({ error: "Invalid email or password" });
         }
@@ -564,8 +606,8 @@ app.post('/api/auth/reset-password', async (req, res) => {
 
 // ---------------- USER SETTINGS ENDPOINTS ---------------- //
 
-app.get('/api/settings', async (req, res) => {
-    const { email } = req.query;
+app.get('/api/settings', requireAuth, async (req, res) => {
+    const email = req.user.email;
     if(!email) return res.status(400).json({ error: "Email required" });
     
     try {
@@ -582,9 +624,10 @@ app.get('/api/settings', async (req, res) => {
     }
 });
 
-app.post('/api/settings', async (req, res) => {
+app.post('/api/settings', requireAuth, async (req, res) => {
+    const email = req.user.email;
     const { 
-        email, 
+        logo_img, 
         logo_img, 
         watermark_img, 
         logo_settings, 
@@ -632,8 +675,8 @@ app.post('/api/settings', async (req, res) => {
 
 // ---------------- STUDENTS ENDPOINTS ---------------- //
 
-app.get('/api/students', async (req, res) => {
-    const user_email = req.query.email;
+app.get('/api/students', requireAuth, async (req, res) => {
+    const user_email = req.user.email;
     if(!user_email) return res.status(400).json({ error: "Email required" });
     
     try {
@@ -938,7 +981,8 @@ app.get('/api/students', async (req, res) => {
 });
 
 // Demo account reset on logout - clears all demo students
-app.post('/api/demo/reset', async (req, res) => {
+app.post('/api/demo/reset', requireAuth, async (req, res) => {
+    if (req.user.email !== 'demo@school.com') return res.status(403).json({ error: 'Forbidden.' });
     try {
         await pool.query(`DELETE FROM students WHERE user_email = 'demo@school.com'`);
         res.json({ message: 'Demo account reset successfully' });
@@ -948,8 +992,8 @@ app.post('/api/demo/reset', async (req, res) => {
 });
 
 // Delete exactly one student for the signed-in account.
-app.delete('/api/students/:id', async (req, res) => {
-    const user_email = req.query.email;
+app.delete('/api/students/:id', requireAuth, async (req, res) => {
+    const user_email = req.user.email;
     const studentId = req.params.id;
 
     if (!user_email || !studentId) {
@@ -980,8 +1024,9 @@ app.delete('/api/students/:id', async (req, res) => {
     }
 });
 
-app.post('/api/students', async (req, res) => {
-    const { user_email, students } = req.body;
+app.post('/api/students', requireAuth, async (req, res) => {
+    const user_email = req.user.email;
+    const { students } = req.body;
     if(!user_email || !students) return res.status(400).json({ error: "Email and students data required" });
     
     // Validate demo account limits
@@ -1034,8 +1079,9 @@ app.post('/api/students', async (req, res) => {
 });
 
 // ---------------- DATA MIGRATION ENDPOINT ---------------- //
-app.post('/api/migrate', async (req, res) => {
-    const { email, students } = req.body;
+app.post('/api/migrate', requireAuth, async (req, res) => {
+    const email = req.user.email;
+    const { students } = req.body;
     if(!email || !students || students.length === 0) return res.json({ message: "No data to migrate" });
     
     // Block migration for demo account
