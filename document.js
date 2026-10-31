@@ -1685,7 +1685,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Load existing term details if they exist in DB
         if (student.termName) document.getElementById('termName').value = student.termName;
-        if (student.examName) document.getElementById('examName').value = student.examName;
+        // Keep the exam name entered by the user when switching between students.
         if (student.sessionYear) document.getElementById('sessionYear').value = student.sessionYear;
         if (student.minMarksVal) document.getElementById('minMarks').value = student.minMarksVal;
         if (student.reopenDate) document.getElementById('reopenDate').value = student.reopenDate;
