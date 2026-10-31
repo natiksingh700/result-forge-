@@ -1359,6 +1359,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             classSection: normalizeImportedClass(cls),
                             studentName: name,
                             studentPen: pen,
+                            panId: pen, // Display the Excel Student PEN in the existing PAN/PEN ID field.
                             fatherName: father,
                             motherName: mother,
                             address: '',
