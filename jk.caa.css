@@ -1759,3 +1759,61 @@ td:first-child {
 
     .no-print { display: none !important; }
 }
+
+/* Final A4 print rules: keep all saved and newly generated result cards inside one sheet. */
+@media print {
+    @page { size: A4 portrait; margin: 5mm; }
+
+    html, body, #mainAppWrapper, .app-container, .result-section,
+    #printableArea, #bulkPrintContainer, #modalCardContainer {
+        width: 200mm !important;
+        max-width: 200mm !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        background: #fff !important;
+    }
+
+    #bulkPrintContainer {
+        display: block !important;
+        gap: 0 !important;
+    }
+
+    .result-card, .bulk-print-card {
+        width: 200mm !important;
+        min-width: 200mm !important;
+        max-width: 200mm !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 5mm !important;
+        overflow: visible !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        page-break-after: always !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    .result-card:last-child, .bulk-print-card:last-child {
+        page-break-after: auto !important;
+    }
+
+    .result-card table, .bulk-print-card table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+    }
+
+    .result-card th, .result-card td,
+    .bulk-print-card th, .bulk-print-card td {
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+    }
+
+    .no-print { display: none !important; }
+}
