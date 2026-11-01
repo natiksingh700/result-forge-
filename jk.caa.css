@@ -1694,3 +1694,68 @@ td:first-child {
         page-break-inside: avoid !important;
     }
 }
+
+
+/* A4 safe-area print correction. Keep a small physical margin for printers
+   and use the same 200mm width that the JS fit calculation measures. */
+@media print {
+    @page { size: A4 portrait; margin: 5mm; }
+
+    html, body {
+        width: 200mm !important;
+        max-width: 200mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        background: #fff !important;
+    }
+
+    #printableArea, .result-section, #bulkPrintContainer, #modalCardContainer {
+        width: 200mm !important;
+        min-width: 0 !important;
+        max-width: 200mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+
+    .result-card, .bulk-print-card {
+        width: 200mm !important;
+        min-width: 200mm !important;
+        max-width: 200mm !important;
+        min-height: 0 !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 6mm !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        page-break-after: always !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    .result-card:last-child, .bulk-print-card:last-child {
+        page-break-after: auto !important;
+    }
+
+    .marks-table, .student-details-table, .final-result-table,
+    .co-scholastic-table, .remarks-table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+    }
+
+    .result-card img, .result-card svg {
+        max-width: 100% !important;
+    }
+
+    .signatures, .principal-signature, .signature-line {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    .no-print { display: none !important; }
+}
