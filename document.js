@@ -1668,8 +1668,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Save one subject list per class in this browser so class setup is done once.
     const SUBJECT_TEMPLATE_STORAGE_KEY = 'resultForgeSubjectTemplatesV1';
     function getSubjectTemplates() {
-        try { return JSON.parse(localStorage.getItem(SUBJECT_TEMPLATE_STORAGE_KEY) || '{}'); }
-        catch (_) { return {}; }
+        try {
+            const templates = JSON.parse(localStorage.getItem(SUBJECT_TEMPLATE_STORAGE_KEY) || '{}');
+            const previousDefaults = ['HINDI', 'ENGLISH', 'MATHEMATICS', 'ENVIRONMENTAL SCIENCE', 'COMPUTER', 'GENERAL KNOWLEDGE', 'ART and CRAFT'];
+            const requestedDefaults = ['HINDI', 'ENGLISH', 'MATHEMATICS', 'S.S.T', 'SCIENCE', 'COMPUTER', 'SANSKRIT', 'GK', 'ART & CRAFT'];
+            Object.keys(templates).forEach(key => {
+                const current = templates[key];
+                if (Array.isArray(current) &&
+                    current.length === previousDefaults.length &&
+                    current.every((name, index) => String(name).trim().toUpperCase() === previousDefaults[index].toUpperCase())) {
+                    templates[key] = [...requestedDefaults];
+                }
+            });
+            localStorage.setItem(SUBJECT_TEMPLATE_STORAGE_KEY, JSON.stringify(templates));
+            return templates;
+        } catch (_) { return {}; }
     }
     function classTemplateKey(value) {
         return String(value || '').trim().toUpperCase().replace(/\\s+/g, ' ');
@@ -1780,7 +1793,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // No Excel marks → default subjects
                     if(subjectsContainer) {
                         subjectsContainer.innerHTML = '';
-                        const defaultSubs = ['HINDI', 'ENGLISH', 'MATHEMATICS', 'ENVIRONMENTAL SCIENCE', 'COMPUTER', 'GENERAL KNOWLEDGE', 'ART and CRAFT'];
+                        const defaultSubs = ['HINDI', 'ENGLISH', 'MATHEMATICS', 'S.S.T', 'SCIENCE', 'COMPUTER', 'SANSKRIT', 'GK', 'ART & CRAFT'];
                         defaultSubs.forEach(sub => addSubjectRow(sub, ''));
                     }
                 }
@@ -1788,7 +1801,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // No Excel loaded → default subjects
                 if(subjectsContainer) {
                     subjectsContainer.innerHTML = '';
-                    const defaultSubs = ['HINDI', 'ENGLISH', 'MATHEMATICS', 'ENVIRONMENTAL SCIENCE', 'COMPUTER', 'GENERAL KNOWLEDGE', 'ART and CRAFT'];
+                    const defaultSubs = ['HINDI', 'ENGLISH', 'MATHEMATICS', 'S.S.T', 'SCIENCE', 'COMPUTER', 'SANSKRIT', 'GK', 'ART & CRAFT'];
                     defaultSubs.forEach(sub => addSubjectRow(sub, ''));
                 }
             }
@@ -1830,7 +1843,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function addSubjectRow(sub = '', marks = '85') {
+    function addSubjectRow(sub = '', marks = '') {
         const row = document.createElement('div');
         row.className = 'subject-row';
         row.innerHTML = `
@@ -2003,7 +2016,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    const initialSubjects = ['HINDI', 'ENGLISH', 'MATHEMATICS', 'ENVIRONMENTAL SCIENCE', 'COMPUTER', 'GENERAL KNOWLEDGE', 'ART and CRAFT'];
+    const initialSubjects = ['HINDI', 'ENGLISH', 'MATHEMATICS', 'S.S.T', 'SCIENCE', 'COMPUTER', 'SANSKRIT', 'GK', 'ART & CRAFT'];
     initialSubjects.forEach(sub => addSubjectRow(sub));
 
     addSubBtn.addEventListener('click', () => {
@@ -2274,7 +2287,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // printable A4 area. Measure after applying the actual print width/padding,
     // because measuring the wider screen card can underestimate wrapped content.
     function fitResultCardsForPrint() {
-        const printableHeightPx = 1080; // A4 height minus safe printer margins.
+        const printableHeightPx = 1055; // A4 portrait: 287mm page height minus extra safety space.
         document.querySelectorAll('.result-card').forEach(card => {
             card.style.zoom = '1';
             card.style.setProperty('width', '200mm', 'important');
@@ -2282,13 +2295,15 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.setProperty('max-width', '200mm', 'important');
             card.style.setProperty('min-height', '0', 'important');
             card.style.setProperty('height', 'auto', 'important');
-            card.style.setProperty('padding', '6mm', 'important');
+            card.style.setProperty('padding', '5mm', 'important');
             card.style.setProperty('overflow', 'visible', 'important');
+            card.style.setProperty('max-height', 'none', 'important');
 
-            // Force layout after print dimensions are applied.
+            // Measure the complete card after its real print width is applied.
+            // No lower zoom limit: even very long subject lists are scaled onto one A4 page.
             const contentHeight = Math.max(card.scrollHeight, card.getBoundingClientRect().height);
             const fitZoom = Math.min(1, printableHeightPx / Math.max(1, contentHeight));
-            card.style.zoom = String(Math.max(0.35, fitZoom));
+            card.style.zoom = String(fitZoom * 0.99);
         });
     }
     window.addEventListener('beforeprint', fitResultCardsForPrint);
