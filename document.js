@@ -1681,7 +1681,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('classSection').value = student.classSection || '';
         document.getElementById('dob').value = student.dob || '';
         const panInput = document.getElementById('panId');
-        if (panInput) panInput.value = student.panId || student.studentPen || '';
+        if (panInput) panInput.value = (student.panId || student.studentPen || 'NA').toString().trim().toUpperCase();
         
         // Load existing term details if they exist in DB
         if (student.termName) document.getElementById('termName').value = student.termName;
@@ -1834,9 +1834,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const classCol   = headers.find(h => /class|section/i.test(h));
         const addressCol = headers.find(h => /address|addr/i.test(h));
         const dobCol     = headers.find(h => /dob|date.*birth|birth.*date/i.test(h));
+        const panCol     = headers.find(h => /^(pan\s*id|pan\s*pen\s*id|pan\s*\/\s*pen\s*id|student\s*pen|pen\s*id|pen)$/i.test(h.trim()));
         const rollCol    = headers.find(h => /roll|sr\.?\s*no|serial/i.test(h));
 
-        const skipCols = [nameCol, fatherCol, motherCol, classCol, addressCol, dobCol, rollCol].filter(Boolean);
+        const skipCols = [nameCol, fatherCol, motherCol, classCol, addressCol, dobCol, panCol, rollCol].filter(Boolean);
         const subjectCols = headers.filter(h => !skipCols.includes(h));
 
         if (!nameCol) {
@@ -1861,6 +1862,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 classSection: classCol   ? String(row[classCol]   || '').trim() : '',
                 address:      addressCol ? String(row[addressCol] || '').trim() : '',
                 dob:          dobCol     ? String(row[dobCol]     || '').trim() : '',
+                panId:        panCol     ? String(row[panCol]     || '').trim().toUpperCase() : '',
+                studentPen:   panCol     ? String(row[panCol]     || '').trim().toUpperCase() : '',
                 subjects
             };
         }).filter(Boolean);
@@ -2380,7 +2383,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(q('#dispMotherName')) q('#dispMotherName').textContent = student.motherName || '';
         if(q('#dispClassSection')) q('#dispClassSection').textContent = student.classSection || '';
         if(q('#dispDob')) q('#dispDob').textContent = student.dob || '';
-        if(q('#dispPanId')) q('#dispPanId').textContent = (student.panId || student.studentPen || '').toUpperCase();
+        if(q('#dispPanId')) q('#dispPanId').textContent = (student.panId || student.studentPen || 'NA').toString().trim().toUpperCase() || 'NA';
         renderExtraDetails(student.extraDetails || {});
         
         if(q('#dispTermName')) q('#dispTermName').textContent = (student.termName || '').toUpperCase();
