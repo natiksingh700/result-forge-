@@ -2644,7 +2644,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         currentStudentIndex = targetIndex;
                         loadStudent(targetIndex);
-                        document.getElementById('resultForm')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                        // Render the existing result immediately. Once visible,
+                        // the form's live-update handler saves later edits to
+                        // this same student's record without creating a new one.
+                        const editForm = document.getElementById('resultForm');
+                        if (editForm) editForm.dispatchEvent(new Event('submit'));
+                        editForm?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     });
                     resultItem.appendChild(editButton);
                     bulkPrintContainer.appendChild(resultItem);
