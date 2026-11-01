@@ -2270,20 +2270,34 @@ document.addEventListener('DOMContentLoaded', () => {
         
     });
 
-    // Fit long result cards onto one A4 page. With fewer subjects zoom remains 1,
-    // so removing subjects never makes the result card smaller.
+    // Fit both the current result and previously generated bulk cards to the
+    // printable A4 area. Measure after applying the actual print width/padding,
+    // because measuring the wider screen card can underestimate wrapped content.
     function fitResultCardsForPrint() {
-        const pageHeightPx = 1122; // A4 portrait at 96 CSS px per inch, zero page margin.
+        const printableHeightPx = 1080; // A4 height minus safe printer margins.
         document.querySelectorAll('.result-card').forEach(card => {
-            card.style.zoom = '';
+            card.style.zoom = '1';
+            card.style.setProperty('width', '200mm', 'important');
+            card.style.setProperty('min-width', '200mm', 'important');
+            card.style.setProperty('max-width', '200mm', 'important');
+            card.style.setProperty('min-height', '0', 'important');
+            card.style.setProperty('height', 'auto', 'important');
+            card.style.setProperty('padding', '6mm', 'important');
+            card.style.setProperty('overflow', 'visible', 'important');
+
+            // Force layout after print dimensions are applied.
             const contentHeight = Math.max(card.scrollHeight, card.getBoundingClientRect().height);
-            const fitZoom = Math.min(1, (pageHeightPx - 28) / contentHeight);
-            card.style.zoom = String(Math.max(0.45, fitZoom));
+            const fitZoom = Math.min(1, printableHeightPx / Math.max(1, contentHeight));
+            card.style.zoom = String(Math.max(0.35, fitZoom));
         });
     }
     window.addEventListener('beforeprint', fitResultCardsForPrint);
     window.addEventListener('afterprint', () => {
-        document.querySelectorAll('.result-card').forEach(card => { card.style.zoom = ''; });
+        document.querySelectorAll('.result-card').forEach(card => {
+            card.style.zoom = '';
+            ['width', 'min-width', 'max-width', 'min-height', 'height', 'padding', 'overflow']
+                .forEach(property => card.style.removeProperty(property));
+        });
     });
 
     printBtn.addEventListener('click', () => {
