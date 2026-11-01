@@ -2609,7 +2609,45 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     
                     populateCardData(clone, student);
-                    bulkPrintContainer.appendChild(clone);
+
+                    // Keep an edit action with each saved result. Editing opens
+                    // the existing student record in the Generate Results form.
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'saved-result-item';
+                    resultItem.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:10px; width:100%;';
+                    clone.style.cursor = 'pointer';
+                    resultItem.appendChild(clone);
+
+                    const editButton = document.createElement('button');
+                    editButton.type = 'button';
+                    editButton.className = 'btn-primary no-print';
+                    editButton.innerHTML = '<i class="ph ph-pencil-simple"></i> Edit This Result';
+                    editButton.style.cssText = 'margin:0 auto 1rem; display:flex; align-items:center; gap:8px;';
+                    editButton.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        const generateTab = document.getElementById('tabGenerateBtn');
+                        const classSelect = document.getElementById('selectClassToGenerate');
+                        if (generateTab) generateTab.click();
+
+                        if (!classSelect) {
+                            alert('Generate Results section is unavailable. Please refresh and try again.');
+                            return;
+                        }
+
+                        classSelect.value = student.classSection || '';
+                        classSelect.dispatchEvent(new Event('change'));
+                        const targetIndex = currentClassList.findIndex(item => String(item.id) === String(student.id));
+                        if (targetIndex < 0) {
+                            alert('Student record was not found. Please refresh the page and try again.');
+                            return;
+                        }
+
+                        currentStudentIndex = targetIndex;
+                        loadStudent(targetIndex);
+                        document.getElementById('resultForm')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    });
+                    resultItem.appendChild(editButton);
+                    bulkPrintContainer.appendChild(resultItem);
                 });
             } else {
                 bulkPrintBtn.classList.add('hidden');
