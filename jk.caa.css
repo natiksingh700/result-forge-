@@ -1882,3 +1882,49 @@ td:first-child {
 
     .no-print { display: none !important; }
 }
+
+/* Screen and print: keep the signature block INSIDE the result-card border. */
+.result-card {
+    height: auto !important;
+    min-height: 297mm !important;
+    padding-bottom: 22mm !important;
+    overflow: visible !important;
+    display: flow-root !important;
+}
+
+.result-card .signatures {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: space-between !important;
+    position: relative !important;
+    width: 100% !important;
+    min-height: 22mm !important;
+    margin-top: 6mm !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.result-card .sig-box {
+    width: 48% !important;
+    min-height: 20mm !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+}
+
+.result-card .principal-signature {
+    width: 28mm !important;
+    height: 14mm !important;
+    max-width: 28mm !important;
+    max-height: 14mm !important;
+    object-fit: contain !important;
+    margin: 0 auto 1mm !important;
+}
+
+.result-card .signatures p {
+    margin: 0 !important;
+    line-height: 1.15 !important;
+    white-space: normal !important;
+}
