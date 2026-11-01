@@ -1665,6 +1665,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Save one subject list per class in this browser so class setup is done once.
+    const SUBJECT_TEMPLATE_STORAGE_KEY = 'resultForgeSubjectTemplatesV1';
+    function getSubjectTemplates() {
+        try { return JSON.parse(localStorage.getItem(SUBJECT_TEMPLATE_STORAGE_KEY) || '{}'); }
+        catch (_) { return {}; }
+    }
+    function classTemplateKey(value) {
+        return String(value || '').trim().toUpperCase().replace(/\\s+/g, ' ');
+    }
+    function saveClassSubjectTemplate() {
+        const classValue = document.getElementById('classSection')?.value || selectClassToGenerate?.value || '';
+        const key = classTemplateKey(classValue);
+        if (!key || !subjectsContainer) return;
+        const names = [...subjectsContainer.querySelectorAll('input[name="subjectName[]"]')]
+            .map(input => input.value.trim()).filter(Boolean);
+        if (!names.length) return;
+        const templates = getSubjectTemplates();
+        templates[key] = [...new Set(names)];
+        try { localStorage.setItem(SUBJECT_TEMPLATE_STORAGE_KEY, JSON.stringify(templates)); }
+        catch (error) { console.warn('Could not save class subject template:', error); }
+    }
+    function applyClassSubjectTemplate(classValue) {
+        const key = classTemplateKey(classValue);
+        const names = getSubjectTemplates()[key];
+        if (!key || !Array.isArray(names) || !names.length || !subjectsContainer) return false;
+        const existingMarks = new Map();
+        subjectsContainer.querySelectorAll('.subject-row').forEach(row => {
+            const name = row.querySelector('input[name="subjectName[]"]')?.value.trim().toUpperCase();
+            const marks = row.querySelector('input[name="obtainedMarks[]"]')?.value ?? '';
+            if (name) existingMarks.set(name, marks);
+        });
+        subjectsContainer.innerHTML = '';
+        names.forEach(name => addSubjectRow(name, existingMarks.get(name.toUpperCase()) ?? ''));
+        return true;
+    }
+    if (subjectsContainer) {
+        subjectsContainer.addEventListener('input', saveClassSubjectTemplate);
+        subjectsContainer.addEventListener('change', saveClassSubjectTemplate);
+    }
+
     function loadStudent(index) {
         if (!Number.isInteger(index) || index < 0 || index >= currentClassList.length) return;
         
@@ -1753,6 +1793,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
+
+        // Once a class template exists, keep every student in that class on the same subject list.
+        // Existing marks are retained for matching subject names; newly added subjects start blank.
+        if (!applyClassSubjectTemplate(student.classSection || document.getElementById('classSection')?.value)) {
+            saveClassSubjectTemplate();
+        }
         
         currentStudentNum.textContent = index + 1;
         
@@ -1794,11 +1840,13 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         row.querySelector('.btn-remove').addEventListener('click', () => {
             row.remove();
+            saveClassSubjectTemplate();
             if (document.getElementById('resultCard') && !document.getElementById('resultCard').classList.contains('hidden')) {
                 resultForm.dispatchEvent(new Event('submit'));
             }
         });
         subjectsContainer.appendChild(row);
+        saveClassSubjectTemplate();
     }
 
     // =============================================
@@ -2220,6 +2268,22 @@ document.addEventListener('DOMContentLoaded', () => {
             resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
         
+    });
+
+    // Fit long result cards onto one A4 page. With fewer subjects zoom remains 1,
+    // so removing subjects never makes the result card smaller.
+    function fitResultCardsForPrint() {
+        const pageHeightPx = 1122; // A4 portrait at 96 CSS px per inch, zero page margin.
+        document.querySelectorAll('.result-card').forEach(card => {
+            card.style.zoom = '';
+            const contentHeight = Math.max(card.scrollHeight, card.getBoundingClientRect().height);
+            const fitZoom = Math.min(1, (pageHeightPx - 28) / contentHeight);
+            card.style.zoom = String(Math.max(0.45, fitZoom));
+        });
+    }
+    window.addEventListener('beforeprint', fitResultCardsForPrint);
+    window.addEventListener('afterprint', () => {
+        document.querySelectorAll('.result-card').forEach(card => { card.style.zoom = ''; });
     });
 
     printBtn.addEventListener('click', () => {
