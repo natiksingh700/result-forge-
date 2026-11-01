@@ -2014,3 +2014,11 @@ td:first-child {
     .result-card:last-child, .bulk-print-card:last-child { page-break-after: auto !important; }
     .no-print { display: none !important; }
 }
+
+
+/* Critical: the hidden master result template must never render below saved cards. */
+#resultCard.result-card.hidden,
+.result-card.hidden {
+    display: none !important;
+    visibility: hidden !important;
+}
