@@ -1928,3 +1928,89 @@ td:first-child {
     line-height: 1.15 !important;
     white-space: normal !important;
 }
+
+
+/* Final layout override: the green/orange result border wraps every field and both signatures. */
+.result-card {
+    width: 200mm !important;
+    min-width: 200mm !important;
+    max-width: 200mm !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 4mm !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    display: flow-root !important;
+    position: relative !important;
+}
+
+.result-card .signatures {
+    display: flex !important;
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    margin: 4mm 0 0 !important;
+    padding: 0 !important;
+    min-height: 18mm !important;
+    align-items: flex-end !important;
+    justify-content: space-between !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+}
+
+.result-card .sig-box {
+    position: relative !important;
+    inset: auto !important;
+    width: 48% !important;
+    height: auto !important;
+    min-height: 16mm !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+}
+
+.result-card .principal-signature {
+    position: relative !important;
+    inset: auto !important;
+    display: block !important;
+    width: 28mm !important;
+    height: 13mm !important;
+    max-width: 28mm !important;
+    max-height: 13mm !important;
+    margin: 0 auto 1mm !important;
+    object-fit: contain !important;
+}
+
+.result-card .signatures p {
+    margin: 0 !important;
+    line-height: 1.1 !important;
+    white-space: normal !important;
+}
+
+@media print {
+    @page { size: A4 portrait; margin: 5mm; }
+    html, body, #printableArea, .result-section, #bulkPrintContainer, #modalCardContainer {
+        width: 200mm !important;
+        max-width: 200mm !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+    .result-card, .bulk-print-card {
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        break-inside: avoid-page !important;
+        page-break-inside: avoid !important;
+        page-break-after: always !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+    .result-card:last-child, .bulk-print-card:last-child { page-break-after: auto !important; }
+    .no-print { display: none !important; }
+}
