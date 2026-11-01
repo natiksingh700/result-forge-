@@ -1628,4 +1628,69 @@ td:first-child {
     letter-spacing: 0.5px;
     line-height: 1;
     margin-top: 1px;
-}
+}
+
+/* Final A4 result-print rules: keep the card within one sheet and prevent overflow. */
+@media print {
+    @page { size: A4 portrait; margin: 0; }
+
+    html, body {
+        width: 210mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        background: #fff !important;
+    }
+
+    #printableArea, .result-section, #bulkPrintContainer,
+    #modalCardContainer {
+        width: 210mm !important;
+        min-width: 0 !important;
+        max-width: 210mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+
+    .result-card, .bulk-print-card {
+        width: 210mm !important;
+        min-width: 210mm !important;
+        max-width: 210mm !important;
+        min-height: 297mm !important;
+        height: auto !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        page-break-after: always !important;
+        transform: none !important;
+        transform-origin: top left !important;
+    }
+
+    .result-card:last-child, .bulk-print-card:last-child {
+        page-break-after: auto !important;
+    }
+
+    .marks-table {
+        width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+    }
+
+    .marks-table th, .marks-table td,
+    .student-details-table th, .student-details-table td,
+    .final-result-table th, .final-result-table td,
+    .co-scholastic-table th, .co-scholastic-table td,
+    .remarks-table th, .remarks-table td {
+        overflow-wrap: anywhere !important;
+        word-break: normal !important;
+    }
+
+    .marks-table tr, .student-details-table tr,
+    .final-result-table tr, .co-scholastic-table tr,
+    .remarks-table tr, .signatures {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+}
