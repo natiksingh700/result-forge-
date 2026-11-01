@@ -1817,3 +1817,68 @@ td:first-child {
 
     .no-print { display: none !important; }
 }
+
+/* Hard override: one complete student result, including signatures, per A4 sheet. */
+@media print {
+    @page { size: A4 portrait; margin: 5mm; }
+
+    .result-card, .bulk-print-card {
+        display: flow-root !important;
+        position: relative !important;
+        width: 200mm !important;
+        min-width: 200mm !important;
+        max-width: 200mm !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        box-sizing: border-box !important;
+        padding: 4mm !important;
+        overflow: visible !important;
+        break-inside: avoid-page !important;
+        page-break-inside: avoid !important;
+        page-break-after: always !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    .result-card:last-child, .bulk-print-card:last-child {
+        page-break-after: auto !important;
+    }
+
+    .result-card .signatures,
+    .bulk-print-card .signatures {
+        display: flex !important;
+        position: relative !important;
+        width: 100% !important;
+        margin-top: 3mm !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    .result-card .sig-box,
+    .bulk-print-card .sig-box {
+        position: relative !important;
+        min-height: 10mm !important;
+    }
+
+    .result-card .principal-signature,
+    .bulk-print-card .principal-signature {
+        max-width: 28mm !important;
+        max-height: 17mm !important;
+        object-fit: contain !important;
+    }
+
+    .result-card table, .bulk-print-card table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+    }
+
+    .result-card th, .result-card td,
+    .bulk-print-card th, .bulk-print-card td {
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+    }
+
+    .no-print { display: none !important; }
+}
