@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Hide result card and bulk print container when switching tabs
             const resultCardElem = document.getElementById('resultCard');
             const bulkContainerElem = document.getElementById('bulkPrintContainer');
-            if (resultCardElem) resultCardElem.classList.add('hidden');
+            if (resultCardElem) { resultCardElem.classList.add('hidden'); resultCardElem.style.setProperty('display', 'none', 'important'); }
             if (bulkContainerElem) bulkContainerElem.innerHTML = '';
             
             // Reset layout
@@ -2257,6 +2257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         applySchoolLogoToCard(resultCard);
+        resultCard.style.removeProperty('display');
         resultCard.classList.remove('hidden');
         
         if (printBtn) printBtn.disabled = false;
@@ -2614,7 +2615,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const templateCard = document.getElementById('resultCard');
             bulkPrintContainer.innerHTML = '';
+            // Keep the empty master/template card hidden in Saved Results.
             templateCard.classList.add('hidden');
+            templateCard.style.setProperty('display', 'none', 'important');
             
             if (bulkPrintStudents.length > 0) {
                 bulkPrintBtn.classList.remove('hidden');
@@ -2626,6 +2629,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const clone = templateCard.cloneNode(true);
                     clone.id = '';
                     clone.classList.remove('hidden');
+                    clone.style.removeProperty('display');
                     clone.classList.add('bulk-print-card');
                     clone.style.margin = "0 auto";
                     clone.style.boxShadow = "0 10px 30px rgba(0,0,0,0.15)";
