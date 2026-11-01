@@ -2283,10 +2283,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
     });
 
-    // Fit the COMPLETE result card (including both signatures and footer)
-    // into one A4 page. Include overflowing/positioned descendants in measurement.
-    function fitResultCardsForPrint() {
-        const printableHeightPx = 1060; // A4 portrait printable height with safety margin.
+    // Fit the whole card, including signatures, INSIDE the A4 border on screen and print.
+    function fitResultCardsToA4() {
+        const pageHeightPx = 1060; // A4 printable height with 5mm margins.
         document.querySelectorAll('.result-card').forEach(card => {
             card.style.zoom = '1';
             card.style.setProperty('width', '200mm', 'important');
@@ -2298,31 +2297,30 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.setProperty('padding', '4mm', 'important');
             card.style.setProperty('overflow', 'visible', 'important');
             card.style.setProperty('box-sizing', 'border-box', 'important');
-
-            // Force the browser to lay out the card at its final print width.
+            card.style.setProperty('display', 'flow-root', 'important');
             void card.offsetHeight;
-            const cardTop = card.getBoundingClientRect().top;
-            let contentBottom = Math.max(card.scrollHeight, card.getBoundingClientRect().height);
+
+            const top = card.getBoundingClientRect().top;
+            let bottom = Math.max(card.scrollHeight, card.getBoundingClientRect().height);
             card.querySelectorAll('*').forEach(node => {
                 const rect = node.getBoundingClientRect();
-                if (rect.width || rect.height) {
-                    contentBottom = Math.max(contentBottom, rect.bottom - cardTop);
-                }
+                if (rect.width || rect.height) bottom = Math.max(bottom, rect.bottom - top);
             });
-
-            // Never clamp the scale: the whole card must fit, even with many subjects.
-            const scale = Math.min(1, printableHeightPx / Math.max(1, contentBottom));
-            card.style.zoom = String(scale * 0.985);
+            const scale = Math.min(1, pageHeightPx / Math.max(1, bottom)) * 0.97;
+            card.style.zoom = String(scale);
         });
     }
 
-    window.addEventListener('beforeprint', fitResultCardsForPrint);
-    window.addEventListener('afterprint', () => {
-        document.querySelectorAll('.result-card').forEach(card => {
-            card.style.zoom = '';
-            ['width', 'min-width', 'max-width', 'height', 'min-height', 'max-height', 'padding', 'overflow', 'box-sizing']
-                .forEach(property => card.style.removeProperty(property));
+    // Refit immediately after every result regeneration/edit, not only when Print is clicked.
+    const resultFormElement = document.getElementById('resultForm');
+    if (resultFormElement) {
+        resultFormElement.addEventListener('submit', () => {
+            requestAnimationFrame(() => requestAnimationFrame(fitResultCardsToA4));
         });
+    }
+    window.addEventListener('beforeprint', fitResultCardsToA4);
+    window.addEventListener('afterprint', () => {
+        requestAnimationFrame(fitResultCardsToA4);
     });
 
     printBtn.addEventListener('click', () => {
