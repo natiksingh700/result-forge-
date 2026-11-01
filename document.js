@@ -2283,34 +2283,44 @@ document.addEventListener('DOMContentLoaded', () => {
         
     });
 
-    // Fit both the current result and previously generated bulk cards to the
-    // printable A4 area. Measure after applying the actual print width/padding,
-    // because measuring the wider screen card can underestimate wrapped content.
+    // Fit the COMPLETE result card (including both signatures and footer)
+    // into one A4 page. Include overflowing/positioned descendants in measurement.
     function fitResultCardsForPrint() {
-        const printableHeightPx = 1055; // A4 portrait: 287mm page height minus extra safety space.
+        const printableHeightPx = 1060; // A4 portrait printable height with safety margin.
         document.querySelectorAll('.result-card').forEach(card => {
             card.style.zoom = '1';
             card.style.setProperty('width', '200mm', 'important');
             card.style.setProperty('min-width', '200mm', 'important');
             card.style.setProperty('max-width', '200mm', 'important');
-            card.style.setProperty('min-height', '0', 'important');
             card.style.setProperty('height', 'auto', 'important');
-            card.style.setProperty('padding', '5mm', 'important');
-            card.style.setProperty('overflow', 'visible', 'important');
+            card.style.setProperty('min-height', '0', 'important');
             card.style.setProperty('max-height', 'none', 'important');
+            card.style.setProperty('padding', '4mm', 'important');
+            card.style.setProperty('overflow', 'visible', 'important');
+            card.style.setProperty('box-sizing', 'border-box', 'important');
 
-            // Measure the complete card after its real print width is applied.
-            // No lower zoom limit: even very long subject lists are scaled onto one A4 page.
-            const contentHeight = Math.max(card.scrollHeight, card.getBoundingClientRect().height);
-            const fitZoom = Math.min(1, printableHeightPx / Math.max(1, contentHeight));
-            card.style.zoom = String(fitZoom * 0.99);
+            // Force the browser to lay out the card at its final print width.
+            void card.offsetHeight;
+            const cardTop = card.getBoundingClientRect().top;
+            let contentBottom = Math.max(card.scrollHeight, card.getBoundingClientRect().height);
+            card.querySelectorAll('*').forEach(node => {
+                const rect = node.getBoundingClientRect();
+                if (rect.width || rect.height) {
+                    contentBottom = Math.max(contentBottom, rect.bottom - cardTop);
+                }
+            });
+
+            // Never clamp the scale: the whole card must fit, even with many subjects.
+            const scale = Math.min(1, printableHeightPx / Math.max(1, contentBottom));
+            card.style.zoom = String(scale * 0.985);
         });
     }
+
     window.addEventListener('beforeprint', fitResultCardsForPrint);
     window.addEventListener('afterprint', () => {
         document.querySelectorAll('.result-card').forEach(card => {
             card.style.zoom = '';
-            ['width', 'min-width', 'max-width', 'min-height', 'height', 'padding', 'overflow']
+            ['width', 'min-width', 'max-width', 'height', 'min-height', 'max-height', 'padding', 'overflow', 'box-sizing']
                 .forEach(property => card.style.removeProperty(property));
         });
     });
