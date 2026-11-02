@@ -563,20 +563,38 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 
 // Reset Password - verify token & update password
 app.post('/api/auth/reset-password', async (req, res) => {
-    const { token, newPassword } = req.body;
-    
+    let { token, newPassword } = req.body;
+
+    // Accept either the raw token or the complete reset URL pasted into the form.
+    token = String(token || '').trim();
+    if (token.includes('://')) {
+        try { token = new URL(token).searchParams.get('token') || ''; } catch (_) {}
+    }
+    token = token.trim();
+
     if (!token || !newPassword) {
-        return res.status(400).json({ error: "Token and new password are both required." });
+        return res.status(400).json({ error: "Reset token and new password are both required." });
     }
-    
-    if (newPassword.length < 4) {
-        return res.status(400).json({ error: "Password must be at least 4 characters long." });
+
+    if (newPassword.length < 8) {
+        return res.status(400).json({ error: "Password must be at least 8 characters long." });
     }
-    
+
     try {
-        // Find valid token
+        // Ensure the reset-token table exists even after a fresh deployment.
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS password_resets (
+                id SERIAL PRIMARY KEY,
+                email TEXT NOT NULL,
+                token TEXT NOT NULL,
+                expires_at TIMESTAMP NOT NULL,
+                used BOOLEAN DEFAULT FALSE
+            )
+        `);
+
+        // Find a matching, unused, unexpired token.
         const result = await pool.query(
-            `SELECT * FROM password_resets WHERE token = $1 AND used = FALSE AND expires_at > NOW()`,
+            `SELECT * FROM password_resets WHERE BTRIM(token) = $1 AND used = FALSE AND expires_at > NOW() ORDER BY id DESC LIMIT 1`,
             [token]
         );
         
@@ -589,11 +607,17 @@ app.post('/api/auth/reset-password', async (req, res) => {
         // Hash new password
         const hash = await bcrypt.hash(newPassword, 10);
         
-        // Update user password
-        await pool.query(`UPDATE users SET password_hash = $1 WHERE email = $2`, [hash, resetRecord.email]);
-        
-        // Mark token as used
-        await pool.query(`UPDATE password_resets SET used = TRUE WHERE token = $1`, [token]);
+        // Update the existing account password; do not create or alter other accounts.
+        const updateResult = await pool.query(
+            `UPDATE users SET password_hash = $1 WHERE LOWER(email) = LOWER($2)`,
+            [hash, resetRecord.email]
+        );
+        if (updateResult.rowCount !== 1) {
+            return res.status(404).json({ error: "The account for this reset token no longer exists." });
+        }
+
+        // Consume this token only after the password update succeeds.
+        await pool.query(`UPDATE password_resets SET used = TRUE WHERE id = $1`, [resetRecord.id]);
         
         res.json({ message: "Password changed successfully! You can now log in with your new password." });
     } catch(err) {
