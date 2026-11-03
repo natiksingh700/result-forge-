@@ -1566,6 +1566,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
+            applyClassSubjectTemplate(cls);
             const freshDb = getDb();
             let dbStudents = freshDb.filter(s => normalizeClassValue(s.classSection) === normalizeClassValue(cls));
 
@@ -1667,6 +1668,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Save one subject list per class in this browser so class setup is done once.
     const SUBJECT_TEMPLATE_STORAGE_KEY = 'resultForgeSubjectTemplatesV1';
+    const SUBJECT_TEMPLATE_VERSION_KEY = 'resultForgeSubjectTemplateVersion';
+    const EARLY_CLASS_SUBJECTS = ['HINDI', 'ENGLISH', 'MATH', 'RHYMES / CONVERSATION', 'ART & CRAFT'];
+    const PRIMARY_CLASS_SUBJECTS = ['HINDI', 'ENGLISH', 'MATH', 'ENVIRONMENTAL STUDIES', 'COMPUTER', 'GK', 'ART & CRAFT'];
     function getSubjectTemplates() {
         try {
             const templates = JSON.parse(localStorage.getItem(SUBJECT_TEMPLATE_STORAGE_KEY) || '{}');
@@ -1680,6 +1684,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     templates[key] = [...requestedDefaults];
                 }
             });
+            // Apply the school's new class-wise subject setup once per browser.
+            // Existing student records and their stored marks are not modified.
+            if (localStorage.getItem(SUBJECT_TEMPLATE_VERSION_KEY) !== '2') {
+                ['PG', 'LKG', 'UKG'].forEach(key => { templates[key] = [...EARLY_CLASS_SUBJECTS]; });
+                ['1ST', '2ND', '3RD', '4TH', '5TH'].forEach(key => { templates[key] = [...PRIMARY_CLASS_SUBJECTS]; });
+                localStorage.setItem(SUBJECT_TEMPLATE_VERSION_KEY, '2');
+            }
             localStorage.setItem(SUBJECT_TEMPLATE_STORAGE_KEY, JSON.stringify(templates));
             return templates;
         } catch (_) { return {}; }
@@ -1688,7 +1699,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return String(value || '').trim().toUpperCase().replace(/\\s+/g, ' ');
     }
     function saveClassSubjectTemplate() {
-        const classValue = document.getElementById('classSection')?.value || selectClassToGenerate?.value || '';
+        const classValue = selectClassToGenerate?.value || document.getElementById('classSection')?.value || '';
         const key = classTemplateKey(classValue);
         if (!key || !subjectsContainer) return;
         const names = [...subjectsContainer.querySelectorAll('input[name="subjectName[]"]')]
@@ -1793,7 +1804,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // No Excel marks → default subjects
                     if(subjectsContainer) {
                         subjectsContainer.innerHTML = '';
-                        const defaultSubs = ['HINDI', 'ENGLISH', 'MATHEMATICS', 'S.S.T', 'SCIENCE', 'COMPUTER', 'SANSKRIT', 'GK', 'ART & CRAFT'];
+                        const defaultSubs = getSubjectTemplates()[classTemplateKey(student.classSection || selectClassToGenerate?.value)] || PRIMARY_CLASS_SUBJECTS;
                         defaultSubs.forEach(sub => addSubjectRow(sub, ''));
                     }
                 }
@@ -2016,7 +2027,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    const initialSubjects = ['HINDI', 'ENGLISH', 'MATHEMATICS', 'S.S.T', 'SCIENCE', 'COMPUTER', 'SANSKRIT', 'GK', 'ART & CRAFT'];
+    const initialSubjects = PRIMARY_CLASS_SUBJECTS;
     initialSubjects.forEach(sub => addSubjectRow(sub));
 
     addSubBtn.addEventListener('click', () => {
