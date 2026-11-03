@@ -1812,7 +1812,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // No Excel loaded → default subjects
                 if(subjectsContainer) {
                     subjectsContainer.innerHTML = '';
-                    const defaultSubs = ['HINDI', 'ENGLISH', 'MATHEMATICS', 'S.S.T', 'SCIENCE', 'COMPUTER', 'SANSKRIT', 'GK', 'ART & CRAFT'];
+                    const defaultSubs = getSubjectTemplates()[classTemplateKey(student.classSection || selectClassToGenerate?.value)] || PRIMARY_CLASS_SUBJECTS;
                     defaultSubs.forEach(sub => addSubjectRow(sub, ''));
                 }
             }
