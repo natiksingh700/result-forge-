@@ -1669,7 +1669,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Save one subject list per class in this browser so class setup is done once.
     const SUBJECT_TEMPLATE_STORAGE_KEY = 'resultForgeSubjectTemplatesV1';
     const SUBJECT_TEMPLATE_VERSION_KEY = 'resultForgeSubjectTemplateVersion';
-    const EARLY_CLASS_SUBJECTS = ['HINDI', 'ENGLISH', 'MATH', 'RHYMES / CONVERSATION', 'ART & CRAFT'];
+    const EARLY_CLASS_SUBJECTS = ['HINDI', 'ENGLISH', 'MATH', 'RHYMES', 'CONVERSATION', 'ART & CRAFT'];
     const PRIMARY_CLASS_SUBJECTS = ['HINDI', 'ENGLISH', 'MATH', 'ENVIRONMENTAL STUDIES', 'COMPUTER', 'GK', 'ART & CRAFT'];
     function getSubjectTemplates() {
         try {
@@ -1686,10 +1686,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             // Apply the school's new class-wise subject setup once per browser.
             // Existing student records and their stored marks are not modified.
-            if (localStorage.getItem(SUBJECT_TEMPLATE_VERSION_KEY) !== '2') {
+            if (localStorage.getItem(SUBJECT_TEMPLATE_VERSION_KEY) !== '3') {
                 ['PG', 'LKG', 'UKG'].forEach(key => { templates[key] = [...EARLY_CLASS_SUBJECTS]; });
                 ['1ST', '2ND', '3RD', '4TH', '5TH'].forEach(key => { templates[key] = [...PRIMARY_CLASS_SUBJECTS]; });
-                localStorage.setItem(SUBJECT_TEMPLATE_VERSION_KEY, '2');
+                localStorage.setItem(SUBJECT_TEMPLATE_VERSION_KEY, '3');
             }
             localStorage.setItem(SUBJECT_TEMPLATE_STORAGE_KEY, JSON.stringify(templates));
             return templates;
