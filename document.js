@@ -939,12 +939,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add Student
     const addStudentForm = document.getElementById('addStudentForm');
+    const editingStudentId = document.createElement('input');
+    editingStudentId.type = 'hidden';
+    editingStudentId.id = 'editingStudentId';
+    addStudentForm?.appendChild(editingStudentId);
+    const addStudentSubmit = addStudentForm?.querySelector('button[type="submit"]');
+    const cancelStudentEdit = document.createElement('button');
+    cancelStudentEdit.type = 'button';
+    cancelStudentEdit.textContent = 'Cancel Edit';
+    cancelStudentEdit.className = 'btn-secondary hidden';
+    cancelStudentEdit.style.marginLeft = '10px';
+    addStudentSubmit?.insertAdjacentElement('afterend', cancelStudentEdit);
+
+    function resetStudentEditForm() {
+        editingStudentId.value = '';
+        addStudentForm?.reset();
+        if (addStudentSubmit) addStudentSubmit.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Save Student';
+        cancelStudentEdit.classList.add('hidden');
+    }
+    cancelStudentEdit.addEventListener('click', resetStudentEditForm);
+
     if(addStudentForm) {
         addStudentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Frontend demo account - max 10 students check
             const currentUser = sessionStorage.getItem('currentUser');
+            const editingId = editingStudentId.value;
+            if (editingId) {
+                if (currentUser === 'demo@school.com') {
+                    alert('Editing students is not available in the Demo account. Please Sign Up to manage student details.');
+                    return;
+                }
+                const updatedDetails = {
+                    studentName: document.getElementById('dbStudentName').value.trim(),
+                    classSection: document.getElementById('dbClass').value,
+                    fatherName: document.getElementById('dbFatherName').value.trim(),
+                    motherName: document.getElementById('dbMotherName').value.trim(),
+                    dob: document.getElementById('dbDob').value.trim(),
+                    panId: (document.getElementById('dbPanId').value || '').trim().toUpperCase()
+                };
+                try {
+                    const response = await apiFetch('/api/students/' + encodeURIComponent(editingId), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedDetails)
+                    });
+                    const result = await response.json().catch(() => ({}));
+                    if (!response.ok) throw new Error(result.error || 'Student details could not be updated.');
+                    const localStudent = currentDbState.find(item => String(item.id) === String(editingId));
+                    if (localStudent) Object.assign(localStudent, updatedDetails);
+                    resetStudentEditForm();
+                    renderDbTable();
+                    alert('Student details updated successfully.');
+                } catch (error) {
+                    alert(error.message || 'Could not update student details. Please try again.');
+                }
+                return;
+            }
+
+            // Frontend demo account - max 10 students check
             if (currentUser === 'demo@school.com') {
                 const db = getDb();
                 if (db.length >= 10) {
@@ -986,6 +1039,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event delegation for delete buttons
     if (dbTableBody) {
         dbTableBody.addEventListener('click', async (e) => {
+            const editBtn = e.target.closest('.edit-student-btn');
+            if (editBtn) {
+                const student = currentDbState.find(item => String(item.id) === String(editBtn.dataset.id));
+                if (!student) {
+                    alert('Student record not found. Please refresh and try again.');
+                    return;
+                }
+                if (sessionStorage.getItem('currentUser') === 'demo@school.com') {
+                    alert('Editing students is not available in the Demo account. Please Sign Up to manage student details.');
+                    return;
+                }
+                document.getElementById('dbStudentName').value = student.studentName || '';
+                document.getElementById('dbClass').value = student.classSection || '';
+                document.getElementById('dbFatherName').value = student.fatherName || '';
+                document.getElementById('dbMotherName').value = student.motherName || '';
+                document.getElementById('dbDob').value = student.dob || '';
+                document.getElementById('dbPanId').value = student.panId || student.studentPen || '';
+                editingStudentId.value = String(student.id);
+                if (addStudentSubmit) addStudentSubmit.innerHTML = '<i class="ph ph-floppy-disk"></i> Update Student';
+                cancelStudentEdit.classList.remove('hidden');
+                document.getElementById('addStudentForm')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.getElementById('dbStudentName')?.focus();
+                return;
+            }
+
             const deleteBtn = e.target.closest('.delete-btn');
             if (deleteBtn) {
                 const id = deleteBtn.getAttribute('data-id');
@@ -1185,7 +1263,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${s.classSection}</td>
                     <td>${s.fatherName}</td>
                     <td>${statusBadge}</td>
-                    <td><button class="delete-btn" data-id="${s.id}"><i class="ph ph-trash" style="font-size: 15px;"></i> Delete</button></td>
+                    <td style="white-space:nowrap;"><button class="edit-student-btn" data-id="${s.id}" style="margin-right:6px;"><i class="ph ph-pencil-simple"></i> Edit</button><button class="delete-btn" data-id="${s.id}"><i class="ph ph-trash" style="font-size: 15px;"></i> Delete</button></td>
                 </tr>
             `;
         });
