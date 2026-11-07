@@ -2704,7 +2704,71 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (editForm) editForm.dispatchEvent(new Event('submit'));
                         editForm?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     });
-                    resultItem.appendChild(editButton);
+                    const actionRow = document.createElement('div');
+                    actionRow.style.cssText = 'display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; margin:0 auto 1rem;';
+
+                    editButton.style.margin = '0';
+                    actionRow.appendChild(editButton);
+
+                    const shareButton = document.createElement('button');
+                    shareButton.type = 'button';
+                    shareButton.className = 'btn-primary no-print';
+                    shareButton.innerHTML = '<i class="ph ph-share-network"></i> Share';
+                    shareButton.style.cssText = 'display:flex; align-items:center; gap:8px; margin:0;';
+                    shareButton.addEventListener('click', async (event) => {
+                        event.stopPropagation();
+                        if (typeof window.html2canvas !== 'function') {
+                            alert('Share feature is unavailable. Please refresh the page and try again.');
+                            return;
+                        }
+
+                        const originalLabel = shareButton.innerHTML;
+                        shareButton.disabled = true;
+                        shareButton.innerHTML = '<i class="ph ph-spinner"></i> Preparing...';
+                        try {
+                            // Capture only this student's result card, never the page or action buttons.
+                            const canvas = await window.html2canvas(clone, {
+                                backgroundColor: '#ffffff',
+                                scale: 2,
+                                useCORS: true,
+                                logging: false
+                            });
+                            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                            if (!blob) throw new Error('Could not create result image');
+
+                            const safeName = String(student.name || 'Student').replace(/[^a-z0-9-_]/gi, '_');
+                            const file = new File([blob], safeName + '_result.png', { type: 'image/png' });
+
+                            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                                await navigator.share({
+                                    title: 'Student Result',
+                                    text: 'Student result',
+                                    files: [file]
+                                });
+                            } else {
+                                const imageUrl = URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = imageUrl;
+                                link.download = safeName + '_result.png';
+                                document.body.appendChild(link);
+                                link.click();
+                                link.remove();
+                                setTimeout(() => URL.revokeObjectURL(imageUrl), 1500);
+                                alert('Result image downloaded. You can now share it on WhatsApp or any other app.');
+                            }
+                        } catch (error) {
+                            if (error.name !== 'AbortError') {
+                                console.error('Result sharing failed:', error);
+                                alert('Could not share this result. Please try again.');
+                            }
+                        } finally {
+                            shareButton.disabled = false;
+                            shareButton.innerHTML = originalLabel;
+                        }
+                    });
+
+                    actionRow.appendChild(shareButton);
+                    resultItem.appendChild(actionRow);
                     bulkPrintContainer.appendChild(resultItem);
                 });
             } else {
