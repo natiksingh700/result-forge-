@@ -1014,6 +1014,43 @@ app.post('/api/demo/reset', requireAuth, async (req, res) => {
     }
 });
 
+// Update only editable student identity/details; preserve saved marks and result data.
+app.patch('/api/students/:id', requireAuth, async (req, res) => {
+    const user_email = req.user.email;
+    const studentId = req.params.id;
+    const { studentName, classSection, fatherName, motherName, dob, panId } = req.body || {};
+
+    if (!studentName || !classSection) {
+        return res.status(400).json({ error: "Student name and class are required." });
+    }
+    if (user_email === 'demo@school.com') {
+        return res.status(403).json({ error: "Editing students is not available in the Demo account." });
+    }
+
+    try {
+        const result = await pool.query(
+            `UPDATE students
+             SET "studentName" = $1,
+                 "classSection" = $2,
+                 "fatherName" = $3,
+                 "motherName" = $4,
+                 dob = $5,
+                 "resultData" = COALESCE("resultData"::jsonb, '{}'::jsonb) || jsonb_build_object('panId', $6::text, 'studentPen', $6::text)
+             WHERE id = $7 AND user_email = $8
+             RETURNING id`,
+            [studentName.trim(), classSection, (fatherName || '').trim(), (motherName || '').trim(), dob || '', (panId || '').trim().toUpperCase(), studentId, user_email]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Student not found in this account." });
+        }
+        return res.json({ message: "Student details updated successfully.", id: result.rows[0].id });
+    } catch (err) {
+        console.error("Student update error:", err);
+        return res.status(500).json({ error: "Unable to update student details right now. Please try again." });
+    }
+});
+
 // Delete exactly one student for the signed-in account.
 app.delete('/api/students/:id', requireAuth, async (req, res) => {
     const user_email = req.user.email;
